@@ -3,7 +3,41 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ブルアカ 石計画</title>
+<title>ブルアカ 石計画｜青輝石・ガチャ予定・収支管理ツール</title>
+<meta name="description" content="ブルーアーカイブ（ブルアカ）の青輝石とガチャ予定を月ごとに管理できる無料Webツール。平均想定・最低保証、収支報告、サブスク収入、Google同期に対応。">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://kattatokei.github.io/bluearchive-stone-plan/">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="ブルアカ 石計画">
+<meta property="og:title" content="ブルアカ 石計画｜青輝石・ガチャ予定・収支管理ツール">
+<meta property="og:description" content="ブルーアーカイブの青輝石とガチャ予定を月ごとに管理。平均想定・最低保証、収支報告、Google同期に対応。">
+<meta property="og:url" content="https://kattatokei.github.io/bluearchive-stone-plan/">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ブルアカ 石計画">
+<meta name="twitter:description" content="ブルーアーカイブの青輝石・ガチャ予定・収支をまとめて管理できる無料Webツール。">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "ブルアカ 石計画",
+  "alternateName": "ブルーアーカイブ 石計画",
+  "url": "https://kattatokei.github.io/bluearchive-stone-plan/",
+  "description": "ブルーアーカイブ（ブルアカ）の青輝石、ガチャ予定、月ごとの収支を管理できる無料Webツール。",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "ja",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JPY"
+  }
+}
+</script>
 <style>
 :root{
   --bg:#f4f7fb; --panel:#fff; --line:#dfe6ef; --text:#1e293b; --muted:#64748b;
@@ -53,6 +87,15 @@ nav{display:flex;gap:8px;flex-wrap:wrap}
 .cloud-user{font-size:12px;color:var(--muted);max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cloud-auth-btn{padding:7px 10px;min-height:34px;white-space:nowrap}
 main{max-width:1400px;margin:22px auto;padding:0 24px 56px}
+.site-footer{
+  max-width:1400px;
+  margin:0 auto 28px;
+  padding:0 24px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.7;
+}
+.site-footer p{margin:2px 0}
 .page{display:none}.page.active{display:block}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 2px 10px rgba(15,23,42,.05)}
 .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -258,6 +301,7 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
 
 @media(max-width:800px){
   main{padding:0 8px 36px}
+  .site-footer{padding:0 12px;font-size:10px}
   .panel{padding:12px}
   .stat-grid{grid-template-columns:repeat(2,1fr);gap:7px}
   .stat{padding:10px}
@@ -515,6 +559,11 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
   </div>
 </section>
 </main>
+
+<footer class="site-footer">
+  <p><strong>ブルアカ 石計画</strong>は、ブルーアーカイブの青輝石・ガチャ予定・月ごとの収支を管理する非公式Webツールです。</p>
+  <p>平均想定と最低保証の比較、ガチャ支出・その他収入/支出、サブスク収入、Googleアカウント同期に対応しています。</p>
+</footer>
 
 
 <dialog id="gachaDialog">
