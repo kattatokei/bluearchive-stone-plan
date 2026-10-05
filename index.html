@@ -20,7 +20,10 @@ h1{font-size:20px;margin:0}
 nav{display:flex;gap:8px;flex-wrap:wrap}
 .nav-btn{border:0;background:#eef2f7;padding:9px 14px;border-radius:10px}
 .nav-btn.active{background:#1e293b;color:white}
-.save-state{margin-left:auto;color:var(--muted);font-size:13px}
+.save-state{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap}
+.cloud-auth{display:flex;align-items:center;gap:8px;min-width:0}
+.cloud-user{font-size:12px;color:var(--muted);max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cloud-auth-btn{padding:7px 10px;min-height:34px;white-space:nowrap}
 main{max-width:1400px;margin:22px auto;padding:0 24px 56px}
 .page{display:none}.page.active{display:block}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 2px 10px rgba(15,23,42,.05)}
@@ -260,6 +263,10 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
   header .header-inner{padding:10px 8px;gap:8px}
   h1{font-size:16px}
   .nav-btn{font-size:11px;padding:7px 9px}
+  .save-state{margin-left:0;font-size:11px}
+  .cloud-auth{margin-left:auto}
+  .cloud-user{display:none}
+  .cloud-auth-btn{font-size:11px;padding:7px 9px}
   .toolbar{gap:7px}
   .primary,.secondary,.danger{font-size:11px;padding:7px 9px;min-height:34px}
 }
@@ -274,7 +281,11 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
       <button class="nav-btn" data-page="report">収支報告</button>
       <button class="nav-btn" data-page="settings">ルール設定</button>
     </nav>
-    <div class="save-state" id="saveState">保存済み</div>
+    <div class="save-state" id="saveState">端末に保存済み</div>
+    <div class="cloud-auth">
+      <span id="cloudUser" class="cloud-user">未ログイン</span>
+      <button class="secondary cloud-auth-btn" id="googleAuthBtn">Googleでログイン</button>
+    </div>
   </div>
 </header>
 
@@ -375,7 +386,7 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
       <label class="secondary" style="cursor:pointer">JSONを読み込む<input id="importJson" type="file" accept=".json,application/json" style="display:none"></label>
       <button class="danger" id="resetData">全データ削除</button>
     </div>
-    <p class="help">変更はこのブラウザの localStorage に自動保存されます。定期的にJSONを書き出しておくと安全です。</p>
+    <p class="help">端末内には常に自動保存されます。Googleログイン中は同じGoogleアカウントのFirestoreにも自動同期します。JSON書き出しはバックアップとして残せます。</p>
   </div>
 </section>
 </main>
@@ -500,9 +511,14 @@ let txPlanOptions=[];
 let editingMonth=null;
 
 function save(){
-  document.getElementById("saveState").textContent="保存中…";
+  const state=document.getElementById("saveState");
+  state.textContent=window.blueArchiveCloud?.isSignedIn?.() ? "Googleに同期中…" : "端末に保存中…";
   localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-  setTimeout(()=>document.getElementById("saveState").textContent="保存済み",150);
+  if(window.blueArchiveCloud?.queueSave){
+    window.blueArchiveCloud.queueSave(clone(data));
+  }else{
+    setTimeout(()=>state.textContent="端末に保存済み",150);
+  }
 }
 function yen(n){ return Math.round(Number(n||0)).toLocaleString("ja-JP"); }
 function monthDays(key){ const [y,m]=key.split("-").map(Number); return new Date(y,m,0).getDate(); }
@@ -1171,9 +1187,221 @@ document.getElementById("resetData").onclick=()=>{
   data=clone(defaults);ensureInitialMonths();save();renderAll();
 };
 
+window.blueArchiveLocal = {
+  getData:()=>clone(data),
+  replaceData:(incoming)=>{
+    if(!incoming || typeof incoming!=="object") return;
+    data={
+      ...clone(defaults), ...incoming,
+      settings:{...clone(defaults.settings), ...(incoming.settings||{})},
+      months:incoming.months||{},
+      plans:{
+        average:incoming.plans?.average||{},
+        guaranteed:incoming.plans?.guaranteed||{}
+      },
+      transactions:incoming.transactions||[],
+      closings:incoming.closings||{}
+    };
+    ensureInitialMonths();
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+    renderAll();
+  }
+};
+
 renderAll();
 const initialSyncBtn=document.getElementById("syncGuaranteedFromAverage");
 if(initialSyncBtn) initialSyncBtn.style.display=activeMode==="guaranteed"?"inline-block":"none";
 </script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDmWFlm6fP1unP0C2TxixiQY3UWXcrGew",
+  authDomain: "bluearchive-stone-plan.firebaseapp.com",
+  projectId: "bluearchive-stone-plan",
+  storageBucket: "bluearchive-stone-plan.firebasestorage.app",
+  messagingSenderId: "161134561147",
+  appId: "1:161134561147:web:b1b1b0f81f3084ec6a1fde",
+  measurementId: "G-8VT8CRQFVG"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+const btn = document.getElementById("googleAuthBtn");
+const userEl = document.getElementById("cloudUser");
+const saveState = document.getElementById("saveState");
+
+let currentUser = null;
+let unsubscribeUserDoc = null;
+let saveTimer = null;
+let syncReady = false;
+let queuedBeforeReady = null;
+let applyingRemote = false;
+
+function currentData(){
+  return window.blueArchiveLocal?.getData?.() || null;
+}
+function sameData(a,b){
+  try{return JSON.stringify(a)===JSON.stringify(b)}catch{return false}
+}
+function setSignedOutUi(){
+  userEl.textContent="未ログイン";
+  btn.textContent="Googleでログイン";
+  saveState.textContent="端末に保存済み";
+}
+function setSignedInUi(user){
+  userEl.textContent=user.email || user.displayName || "Googleログイン中";
+  btn.textContent="ログアウト";
+}
+async function writeCloud(snapshot){
+  if(!currentUser || !syncReady || applyingRemote) return;
+  const ref=doc(db,"users",currentUser.uid);
+  try{
+    saveState.textContent="Googleに同期中…";
+    await setDoc(ref,{
+      appData:snapshot,
+      updatedAt:serverTimestamp()
+    },{merge:true});
+    saveState.textContent="Googleに同期済み";
+  }catch(err){
+    console.error("Firestore save failed",err);
+    saveState.textContent="端末保存済み・同期エラー";
+  }
+}
+
+window.blueArchiveCloud = {
+  isSignedIn:()=>!!currentUser,
+  queueSave(snapshot){
+    if(!currentUser){
+      saveState.textContent="端末に保存済み";
+      return;
+    }
+    if(!syncReady){
+      queuedBeforeReady=snapshot;
+      saveState.textContent="Google同期を準備中…";
+      return;
+    }
+    clearTimeout(saveTimer);
+    saveState.textContent="Googleに同期中…";
+    saveTimer=setTimeout(()=>writeCloud(snapshot),450);
+  }
+};
+
+btn.addEventListener("click",async()=>{
+  btn.disabled=true;
+  try{
+    if(auth.currentUser){
+      await signOut(auth);
+    }else{
+      await signInWithPopup(auth,provider);
+    }
+  }catch(err){
+    console.error("Google auth failed",err);
+    if(err?.code==="auth/popup-closed-by-user"){
+      saveState.textContent="ログインをキャンセル";
+    }else if(err?.code==="auth/unauthorized-domain"){
+      alert("このGitHub PagesドメインがFirebaseの承認済みドメインに登録されていません。");
+      saveState.textContent="Googleログイン設定エラー";
+    }else{
+      alert("Googleログインに失敗しました。もう一度お試しください。");
+      saveState.textContent="Googleログインエラー";
+    }
+  }finally{
+    btn.disabled=false;
+  }
+});
+
+onAuthStateChanged(auth,async(user)=>{
+  if(unsubscribeUserDoc){
+    unsubscribeUserDoc();
+    unsubscribeUserDoc=null;
+  }
+  clearTimeout(saveTimer);
+  saveTimer=null;
+  currentUser=user;
+  syncReady=false;
+  queuedBeforeReady=null;
+
+  if(!user){
+    setSignedOutUi();
+    return;
+  }
+
+  setSignedInUi(user);
+  saveState.textContent="Googleから読込中…";
+  const ref=doc(db,"users",user.uid);
+
+  try{
+    const snap=await getDoc(ref);
+    if(snap.exists() && snap.data()?.appData){
+      const remote=snap.data().appData;
+      const local=currentData();
+      if(!sameData(remote,local)){
+        applyingRemote=true;
+        window.blueArchiveLocal?.replaceData?.(remote);
+        applyingRemote=false;
+      }
+    }else{
+      const local=currentData();
+      if(local){
+        await setDoc(ref,{
+          appData:local,
+          updatedAt:serverTimestamp()
+        },{merge:true});
+      }
+    }
+
+    syncReady=true;
+    saveState.textContent="Googleに同期済み";
+
+    if(queuedBeforeReady){
+      const pending=queuedBeforeReady;
+      queuedBeforeReady=null;
+      await writeCloud(pending);
+    }
+
+    unsubscribeUserDoc=onSnapshot(ref,(docSnap)=>{
+      if(!docSnap.exists()) return;
+      const remote=docSnap.data()?.appData;
+      const local=currentData();
+      if(remote && !sameData(remote,local)){
+        applyingRemote=true;
+        window.blueArchiveLocal?.replaceData?.(remote);
+        applyingRemote=false;
+      }
+      if(!docSnap.metadata.hasPendingWrites){
+        saveState.textContent="Googleに同期済み";
+      }
+    },(err)=>{
+      console.error("Firestore realtime sync failed",err);
+      saveState.textContent="端末保存済み・同期エラー";
+    });
+  }catch(err){
+    console.error("Firestore initial sync failed",err);
+    syncReady=true;
+    saveState.textContent="端末保存済み・同期エラー";
+  }
+});
+</script>
+
 </body>
 </html>
