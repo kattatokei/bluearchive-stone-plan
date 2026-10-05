@@ -21,38 +21,44 @@ nav{display:flex;gap:8px;flex-wrap:wrap}
 .nav-btn{border:0;background:#eef2f7;padding:9px 14px;border-radius:10px}
 .nav-btn.active{background:#1e293b;color:white}
 .save-state{margin-left:auto;color:var(--muted);font-size:13px}
-main{max-width:1400px;margin:18px auto;padding:0 18px 42px}
+main{max-width:1400px;margin:22px auto;padding:0 24px 56px}
 .page{display:none}.page.active{display:block}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(15,23,42,.04)}
-.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 2px 10px rgba(15,23,42,.05)}
+.toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .segment{display:inline-flex;background:#eef2f7;border-radius:12px;padding:4px}
 .segment button{border:0;background:transparent;padding:8px 14px;border-radius:9px}
 .segment button.active{background:#fff;box-shadow:0 1px 4px rgba(15,23,42,.14);font-weight:700}
 .stat-grid{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;margin-top:12px}
-.stat{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:15px}
 .stat .label{font-size:12px;color:var(--muted)} .stat .value{font-size:22px;font-weight:800;margin-top:4px}
 .plan-table-wrap,.report-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
 table{border-collapse:collapse;width:100%;min-width:980px}
-th,td{border-bottom:1px solid var(--line);padding:11px 10px;text-align:left;vertical-align:top}
+th,td{border-bottom:1px solid var(--line);padding:13px 14px;text-align:left;vertical-align:top}
 th{background:#f8fafc;font-size:13px;white-space:nowrap}
 tr:last-child td{border-bottom:0}
 .month-cell{font-weight:700;white-space:nowrap}
 .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:700}
 .badge.plan{background:#e0f2fe;color:#075985}.badge.actual{background:#e2e8f0;color:#334155}.badge.current{background:#fef3c7;color:#92400e}
 .gacha-list{display:flex;gap:6px;flex-wrap:wrap}
-.gacha-chip{border-radius:9px;padding:6px 8px;font-size:12px;min-width:110px}
+.gacha-chip{border-radius:10px;padding:8px 10px;font-size:12px;min-width:118px;line-height:1.45}
 .gacha-chip.permanent{background:var(--perm)} .gacha-chip.limited{background:var(--limited)}
 .gacha-chip.anniversary{background:var(--anniv)} .gacha-chip.free100{background:var(--free100)}
 .gacha-chip.done{opacity:.55;text-decoration:line-through}
 .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.safety.negative{color:var(--danger);font-weight:800}.safety.low{color:var(--warn);font-weight:800}.safety.ok{color:var(--good);font-weight:800}
+.safety{font-weight:800}
+.safety.balance-below-zero{color:#7f1d1d;font-weight:900}
+.safety.reserve-below-zero{color:#dc2626}
+.safety.orange{color:#ea580c}
+.safety.lightgreen{color:#65a30d}
+.safety.green{color:#15803d}
+.balance-negative{color:#7f1d1d;font-weight:900}.safety.low{color:var(--warn);font-weight:800}.safety.ok{color:var(--good);font-weight:800}
 .link-btn{border:0;background:transparent;color:var(--accent);padding:0}
 .ghost-add{
   border:1px dashed #cbd5e1;
   background:#f8fafc;
   color:#94a3b8;
-  padding:6px 10px;
-  border-radius:9px;
+  padding:8px 12px;
+  border-radius:10px;
   font-size:12px;
 }
 .ghost-add:hover{background:#f1f5f9;color:#64748b;border-color:#94a3b8}
@@ -61,38 +67,104 @@ tr:last-child td{border-bottom:0}
 .danger{border:1px solid #fecaca;background:#fff1f2;color:#b91c1c;padding:9px 13px;border-radius:10px}
 .month-editor{margin-top:14px;border-top:1px solid var(--line);padding-top:14px;display:none}
 .month-editor.open{display:block}
-.form-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
-input,select,textarea{width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:9px;background:white}
+.form-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:14px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:7px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:white;min-height:42px}
 textarea{min-height:68px;resize:vertical}
 .gacha-card{border:1px solid var(--line);border-left:7px solid #94a3b8;border-radius:12px;padding:12px;margin-top:10px}
 .gacha-card.permanent{border-left-color:#60a5fa}.gacha-card.limited{border-left-color:#8b5cf6}.gacha-card.anniversary{border-left-color:#f59e0b}.gacha-card.free100{border-left-color:#22c55e}
 .gacha-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto auto;gap:8px;align-items:end}
 .help{font-size:12px;color:var(--muted);line-height:1.6}
-.section-title{font-size:16px;margin:0 0 12px}
-.setting-row{display:grid;grid-template-columns:260px 180px 1fr;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid #eef2f7}
+.section-title{font-size:17px;margin:0 0 16px;line-height:1.4}
+.setting-row{display:grid;grid-template-columns:260px 180px 1fr;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid #eef2f7}
 .setting-row:last-child{border-bottom:0}
 .report-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .report-table th:first-child,.report-table td:first-child{position:sticky;left:0;background:#fff;z-index:2}
 .report-table th:first-child{background:#f8fafc}
 .actual-inputs{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px}
 .tx-list{margin-top:12px;border-top:1px solid var(--line)}
-.tx-item{display:grid;grid-template-columns:110px 110px 1fr 130px auto;gap:8px;padding:9px 0;border-bottom:1px solid #eef2f7;align-items:center}
+.tx-item{display:grid;grid-template-columns:110px 110px 1fr 130px auto;gap:10px;padding:12px 0;border-bottom:1px solid #eef2f7;align-items:center}
 .note{color:var(--muted);font-size:13px}
 .small{font-size:12px}
 .spacer{flex:1}
-dialog{border:0;border-radius:16px;max-width:560px;width:calc(100% - 30px);padding:0;box-shadow:0 20px 60px rgba(15,23,42,.25)}
-dialog::backdrop{background:rgba(15,23,42,.35)}
-.dialog-body{padding:18px}
-.dialog-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}
+dialog{border:0;border-radius:18px;max-width:600px;width:calc(100% - 40px);padding:0;box-shadow:0 20px 60px rgba(15,23,42,.25);overflow:hidden}
+dialog::backdrop{background:rgba(15,23,42,.38)}
+#gachaDialog .help{margin-top:14px!important;padding:10px 12px;background:#f8fafc;border-radius:10px}
+#gachaDialog .form-grid{grid-template-columns:1fr 1fr}
+#txDialog .form-grid{grid-template-columns:1fr 1fr}
+.plan-table-wrap,.report-wrap{margin-top:2px}
+.plan-table-wrap table,.report-wrap table{border-spacing:0}
+.primary,.secondary,.danger{min-height:40px}
+.dialog-body{padding:24px 24px 20px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px 20px;border-top:1px solid var(--line);background:#fafafa;flex-wrap:wrap}
 @media(max-width:800px){
-  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  main{padding:0 8px 36px}
+  .panel{padding:12px}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:7px}
+  .stat{padding:10px}
+  .stat .label{font-size:10px}
+  .stat .value{font-size:17px}
   .form-grid,.actual-inputs{grid-template-columns:1fr 1fr}
   .gacha-grid{grid-template-columns:1fr 1fr}
   .gacha-grid .name-field{grid-column:1/-1}
   .setting-row{grid-template-columns:1fr}
   .save-state{margin-left:0;width:100%}
   .desktop-only{display:none}
+
+  /* Keep the same table layout and fit it to screen width */
+  .plan-table-wrap,.report-wrap{
+    overflow-x:hidden;
+    width:100%;
+  }
+  .plan-table-wrap table,.report-wrap table{
+    min-width:0 !important;
+    width:100%;
+    table-layout:fixed;
+    font-size:9px;
+  }
+  .plan-table-wrap th,.plan-table-wrap td,
+  .report-wrap th,.report-wrap td{
+    padding:5px 4px;
+    white-space:normal;
+    word-break:break-word;
+    line-height:1.25;
+  }
+  .plan-table-wrap th{font-size:9px}
+  .month-cell{white-space:normal;font-size:9px}
+  .badge{font-size:8px;padding:2px 5px}
+  .gacha-list{gap:3px}
+  .gacha-chip{
+    min-width:0;
+    width:100%;
+    font-size:8px;
+    padding:5px 4px;
+    line-height:1.2;
+  }
+  .ghost-add{
+    width:100%;
+    font-size:8px;
+    padding:5px 4px;
+  }
+  .num{white-space:normal}
+  .plan-table-wrap th:nth-child(1), .plan-table-wrap td:nth-child(1){width:14%}
+  .plan-table-wrap th:nth-child(2), .plan-table-wrap td:nth-child(2){width:14%}
+  .plan-table-wrap th:nth-child(3), .plan-table-wrap td:nth-child(3){width:28%}
+  .plan-table-wrap th:nth-child(4), .plan-table-wrap td:nth-child(4){width:13%}
+  .plan-table-wrap th:nth-child(5), .plan-table-wrap td:nth-child(5){width:16%}
+  .plan-table-wrap th:nth-child(6), .plan-table-wrap td:nth-child(6){width:15%}
+
+  .report-wrap table{font-size:8px}
+  .report-wrap th,.report-wrap td{padding:4px 3px}
+  .report-table th:first-child,.report-table td:first-child{
+    position:static;
+    width:16%;
+  }
+
+  header .header-inner{padding:10px 8px;gap:8px}
+  h1{font-size:16px}
+  .nav-btn{font-size:11px;padding:7px 9px}
+  .toolbar{gap:7px}
+  .primary,.secondary,.danger{font-size:11px;padding:7px 9px;min-height:34px}
 }
 </style>
 </head>
@@ -132,7 +204,7 @@ dialog::backdrop{background:rgba(15,23,42,.35)}
   <div class="plan-table-wrap">
     <table>
       <thead><tr>
-        <th>月</th><th>収入</th><th>ガチャ予定</th><th class="num">支出</th><th class="num">月末残高</th><th class="num">安全余力</th>
+        <th>月</th><th>収入</th><th>ガチャ予定</th><th class="num">支出</th><th class="num">月末残高</th><th class="num">余剰石</th>
       </tr></thead>
       <tbody id="planBody"></tbody>
     </table>
@@ -161,7 +233,7 @@ dialog::backdrop{background:rgba(15,23,42,.35)}
     <div class="actual-inputs">
       <div><label>対象月</label><select id="closingMonth"></select></div>
       <div><label>期末残高</label><input id="closingBalance" type="number" min="0" placeholder="例 73957"></div>
-      <div><label>サブスク</label><select id="closingSub"><option value="auto">計画と同じ</option><option value="yes">あり</option><option value="no">なし</option></select></div>
+      <div><label>サブスク</label><select id="closingSub"><option value="yes">あり</option><option value="no">なし</option></select></div>
       <div><label>月途中加入など</label><input id="closingDaysOverride" type="number" min="0" max="31" placeholder="空欄=その月の日数"></div>
     </div>
     <div class="toolbar" style="margin-top:12px">
@@ -213,7 +285,7 @@ dialog::backdrop{background:rgba(15,23,42,.35)}
 
 <dialog id="gachaDialog">
   <div class="dialog-body">
-    <h2 class="section-title" id="gachaDialogTitle">ガチャ予定を追加</h2>
+    <h2 class="section-title" id="gachaDialogTitle">ガチャ追加</h2>
     <div class="form-grid">
       <div style="grid-column:1/-1">
         <label>ガチャ名</label>
@@ -237,6 +309,7 @@ dialog::backdrop{background:rgba(15,23,42,.35)}
   </div>
   <div class="dialog-actions">
     <button class="secondary" id="cancelGachaDialog">キャンセル</button>
+    <button class="secondary" id="saveAndAddAnotherGacha">＋続ける</button>
     <button class="primary" id="saveGachaDialog">追加</button>
   </div>
 </dialog>
@@ -412,6 +485,22 @@ function planSpend(key,mode){
   ensureMonth(key);
   return data.plans[mode][key].gachas.filter(g=>!g.done).reduce((s,g)=>s+gachaCost(g,mode),0);
 }
+function cumulativePlannedPU(key,mode){
+  let total=0;
+  for(const month of sortedMonths()){
+    if(month>key) break;
+    ensureMonth(month);
+    for(const g of data.plans[mode][month].gachas||[]){
+      if(g.done) continue;
+      const choice=String(g.choice ?? g.pickupCount ?? "");
+      // 180連・380連は支出額が固定なので、追加の下振れ保険PUには数えない。
+      if(choice==="180pull" || choice==="380pull") continue;
+      const n=Number(choice);
+      if(Number.isFinite(n) && n>0) total += n;
+    }
+  }
+  return total;
+}
 function calculatePlanRows(){
   let balance=Number(data.baseBalance||0);
   const out=[];
@@ -448,16 +537,25 @@ function renderPlan(){
     const badge = r.type==="actual" ? '<span class="badge actual">実績</span>' : r.type==="current" ? '<span class="badge current">今月</span>' : '<span class="badge plan">計画</span>';
     const ghtml = r.type==="actual"
       ? `<span class="note">ガチャ実績 ${yen(txSum(r.key,"gacha"))}石</span>`
-      : `<div class="gacha-list">${p.gachas.length?p.gachas.map(g=>`<button class="gacha-chip ${g.category} ${g.done?"done":""} open-gacha-dialog" data-month="${r.key}" data-id="${g.id}" style="border:0;text-align:left;cursor:pointer"><strong>${escapeHtml((g.name||"").trim() || categoryName(g.category))}</strong><br>${categoryName(g.category)} / ${gachaChoice(g)}</button>`).join(""):`<button class="ghost-add quick-add-gacha" data-month="${r.key}">＋ ガチャ予定を追加</button>`}</div>`;
-    const safetyClass=r.safety<0?"negative":r.safety<10000?"low":"ok";
+      : `<div class="gacha-list">${p.gachas.length?p.gachas.map(g=>`<button class="gacha-chip ${g.category} ${g.done?"done":""} open-gacha-dialog" data-month="${r.key}" data-id="${g.id}" style="border:0;text-align:left;cursor:pointer"><strong>${escapeHtml((g.name||"").trim() || categoryName(g.category))}</strong><br>${categoryName(g.category)} / ${gachaChoice(g)}</button>`).join(""):`<button class="ghost-add quick-add-gacha" data-month="${r.key}">＋ ガチャ追加</button>`}</div>`;
     const incomeText = r.type==="actual" ? yen(r.income) : `${data.months[r.key].incomeType==="free"?"無課金":"サブスク"} ${yen(r.income)}`;
+    const cumulativePu = cumulativePlannedPU(r.key, activeMode);
+    const extraPu = Math.max(0, cumulativePu - 2);
+    const halfBuffer = extraPu * 5000;
+    const fullBuffer = extraPu * 10000;
+    let safetyClass;
+    if(r.closing < 0) safetyClass = "balance-below-zero";
+    else if(r.safety < 0) safetyClass = "reserve-below-zero";
+    else if(r.safety >= fullBuffer) safetyClass = "green";
+    else if(r.safety >= halfBuffer) safetyClass = "lightgreen";
+    else safetyClass = "orange";
     tr.innerHTML=`
       <td class="month-cell">${fullMonthLabel(r.key)}<br>${badge}</td>
       <td>${incomeText}</td>
       <td>${ghtml}</td>
       <td class="num">${yen(r.spend)}</td>
-      <td class="num"><strong>${yen(r.closing)}</strong></td>
-      <td class="num safety ${safetyClass}">${r.safety>=0?"+":""}${yen(r.safety)}</td>
+      <td class="num ${r.closing<0?"balance-negative":""}"><strong>${yen(r.closing)}</strong></td>
+      <td class="num safety ${safetyClass}" title="予定PU累計 ${cumulativePu}PU / 追加下振れ目安 ${yen(fullBuffer)}石">${r.safety>=0?"+":""}${yen(r.safety)}</td>
       `;
     body.appendChild(tr);
   }
@@ -527,13 +625,16 @@ function openGachaDialog(month, id){
   const p=data.plans[activeMode][month];
   const g=id ? p.gachas.find(x=>x.id===id) : null;
 
-  document.getElementById("gachaDialogTitle").textContent=g ? `${fullMonthLabel(month)} ガチャ予定を編集` : `${fullMonthLabel(month)} ガチャ予定を追加`;
+  document.getElementById("gachaDialogTitle").textContent=g ? `${fullMonthLabel(month)} ガチャ編集` : `${fullMonthLabel(month)} ガチャ追加`;
   const cat=g?.category || "limited";
   document.getElementById("dlgGachaCategory").value=cat;
   document.getElementById("dlgGachaName").value=g?.name || "";
   document.getElementById("dlgGachaName").placeholder=categoryName(cat);
   populateGachaChoice(cat, g?.choice ?? g?.pickupCount ?? "1");
   document.getElementById("saveGachaDialog").textContent=g ? "保存" : "追加";
+  const addAnotherBtn=document.getElementById("saveAndAddAnotherGacha");
+  addAnotherBtn.style.display="inline-block";
+  addAnotherBtn.textContent=g ? "＋追加" : "＋続ける";
 
   // Show a delete button only while editing an existing gacha.
   let del=document.getElementById("deleteGachaDialog");
@@ -563,7 +664,7 @@ document.getElementById("dlgGachaCategory").onchange=e=>{
 };
 document.getElementById("dlgGachaChoice").onchange=updateGachaDialogCost;
 document.getElementById("cancelGachaDialog").onclick=()=>gachaDlg.close();
-document.getElementById("saveGachaDialog").onclick=()=>{
+function saveGachaFromDialog({keepOpen=false}={}){
   if(!gachaDialogMonth) return;
   ensureMonth(gachaDialogMonth);
   const p=data.plans[activeMode][gachaDialogMonth];
@@ -576,14 +677,36 @@ document.getElementById("saveGachaDialog").onclick=()=>{
     pickupCount:(choice==="180pull"||choice==="380pull")?null:Number(choice),
     done:false
   };
+
   if(gachaDialogId){
     const g=p.gachas.find(x=>x.id===gachaDialogId);
     if(g) Object.assign(g,payload);
   }else{
     p.gachas.push({id:crypto.randomUUID?.()||String(Date.now()+Math.random()),...payload});
   }
-  save(); gachaDlg.close(); renderAll();
-};
+
+  save();
+  renderAll();
+
+  if(keepOpen){
+    gachaDialogId=null;
+    document.getElementById("gachaDialogTitle").textContent=`${fullMonthLabel(gachaDialogMonth)} ガチャ追加`;
+    document.getElementById("dlgGachaName").value="";
+    document.getElementById("dlgGachaCategory").value="limited";
+    document.getElementById("dlgGachaName").placeholder="限定";
+    populateGachaChoice("limited","1");
+    document.getElementById("saveGachaDialog").textContent="追加";
+    document.getElementById("saveAndAddAnotherGacha").textContent="＋続ける";
+    const del=document.getElementById("deleteGachaDialog");
+    if(del) del.style.display="none";
+    updateGachaDialogCost();
+  }else{
+    gachaDlg.close();
+  }
+}
+
+document.getElementById("saveGachaDialog").onclick=()=>saveGachaFromDialog({keepOpen:false});
+document.getElementById("saveAndAddAnotherGacha").onclick=()=>saveGachaFromDialog({keepOpen:true});
 
 function renderReport(){
   const months=reportMonthsForYear(reportYear);
@@ -602,7 +725,7 @@ function renderReport(){
     const sum=known.reduce((s,v)=>s+Number(v||0),0);
     const avg=known.length?sum/known.length:0;
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td><strong>${label}</strong></td>${vals.map(v=>`<td class="num">${v===null||v===undefined?"—":yen(v)}</td>`).join("")}
+    tr.innerHTML=`<td><strong>${label}</strong></td>${vals.map(v=>`<td class="num ${key==="closing" && Number(v)<0?"balance-negative":""}">${v===null||v===undefined?"—":yen(v)}</td>`).join("")}
       <td class="num">${aggregate?yen(sum):"—"}</td><td class="num">${aggregate&&known.length?yen(avg):"—"}</td>`;
     body.appendChild(tr);
   });
@@ -620,7 +743,8 @@ function loadClosingForm(key){
   if(!key || key < PLAN_START_MONTH) return;
   ensureMonth(key); const c=data.closings[key]||{};
   document.getElementById("closingBalance").value=c.closingBalance??"";
-  document.getElementById("closingSub").value=c.subscription||"auto";
+  const plannedSub = data.months[key].incomeType==="subscription" ? "yes" : "no";
+  document.getElementById("closingSub").value=(c.subscription==="yes"||c.subscription==="no") ? c.subscription : plannedSub;
   document.getElementById("closingDaysOverride").value=c.daysOverride??"";
 }
 function renderTransactions(){
