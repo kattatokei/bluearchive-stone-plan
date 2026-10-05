@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ブルアカ 素材管理</title>
+<style>
+:root{--bg:#f5f7fb;--panel:#fff;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--blue:#3b82f6;--soft:#eff6ff}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:10;background:#fffffff2;border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
+.wrap{max-width:1200px;margin:auto;padding:14px 18px}.title{font-size:22px;font-weight:800;margin-bottom:10px}
+.top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tabs{display:flex;gap:6px;flex-wrap:wrap}.spacer{flex:1}
+button,.filebtn,select,input[type=search]{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;font-size:14px}
+button,.filebtn{cursor:pointer}.tab.active{border-color:var(--blue);background:var(--soft);color:var(--blue);font-weight:700}
+main{max-width:1200px;margin:auto;padding:18px}.section{display:none}.section.active{display:block}
+.note{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--muted);font-size:13px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card,.mini{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 2px 8px #00000008}
+.head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.name{font-weight:800}.score{font-weight:800;color:var(--blue)}
+.imgline{display:flex;gap:12px;align-items:center;margin-bottom:10px}.icon{width:72px;height:72px;object-fit:contain;border:1px solid var(--line);border-radius:14px;background:#fafafa;padding:5px}
+.caption{font-size:12px;color:var(--muted)}.rows{display:grid;gap:8px}.row{display:grid;grid-template-columns:1fr 1fr .75fr .9fr;gap:8px;align-items:center;font-size:13px}
+.row.h{color:var(--muted);font-size:12px;border-bottom:1px solid var(--line);padding-bottom:6px}.row input,.mini input{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:right;font-size:14px}
+.right{text-align:right}.muted{color:var(--muted)}.ratio{font-weight:700}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.mini .name{margin-bottom:9px}.meta{display:flex;justify-content:space-between;font-size:13px;margin-top:8px}.meta strong{color:var(--blue)}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}th{font-size:12px;color:var(--muted)}th:last-child,td:last-child{text-align:right}
+input[type=file]{display:none}@media(max-width:700px){.row{grid-template-columns:1fr 1fr}.row.h{display:none}.spacer{display:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="title">ブルアカ 素材管理</div><div class="top">
+<div class="tabs"><button class="tab active" data-tab="summary">概要</button><button class="tab" data-tab="bd">BD</button><button class="tab" data-tab="notes">ノート</button><button class="tab" data-tab="ooparts">オーパーツ</button><button class="tab" data-tab="equipment">T10装備</button><button class="tab" data-tab="misc">その他</button></div>
+<div class="spacer"></div><button id="exportBtn">JSON書き出し</button><label class="filebtn">JSON読み込み<input id="importFile" type="file" accept=".json,application/json"></label><button id="resetBtn">全データ初期化</button>
+</div></div></header>
+<main>
+<section id="summary" class="section active"><div class="note">所持数を入力すると「何人分相当か」を自動計算します。入力内容はこのブラウザに自動保存されます。</div><table><thead><tr><th>素材</th><th>現在</th></tr></thead><tbody id="summaryBody"></tbody></table></section>
+<section id="bd" class="section"><div id="bdGrid" class="grid"></div></section>
+<section id="notes" class="section"><div id="notesGrid" class="grid"></div></section>
+<section id="ooparts" class="section"><div class="toolbar"><input id="opSearch" type="search" placeholder="オーパーツ名で検索"><select id="opSort"><option value="name">名前順</option><option value="asc">人数が少ない順</option><option value="desc">人数が多い順</option></select></div><div id="opGrid" class="grid"></div></section>
+<section id="equipment" class="section"><div class="note">T10装備は各種類ごとに <b>60枚 = 1人分</b> で管理します。</div><div id="eqGrid" class="mgrid"></div></section>
+<section id="misc" class="section"><div id="miscGrid" class="mgrid"></div></section>
+</main>
+<script>
+const KEY="ba-material-manager-v1";
+const tiers=[["basic","初級"],["intermediate","中級"],["advanced","上級"],["superior","最上級"]];
+const schools=[["abydos","アビドス"],["gehenna","ゲヘナ"],["trinity","トリニティ"],["millennium","ミレニアム"],["shanhaijing","山海経"],["hyakkiyako","百鬼夜行"],["redwinter","レッドウィンター"],["valkyrie","ヴァルキューレ"],["arius","アリウス"],["highlander","ハイランダー"],["wildhunt","ワイルドハント"]];
+const ops=[["antikythera","アンティキティラ装置","Antikythera"],["voynich","ヴォイニッチ手稿","Voynich"],["wolfsegg","ヴォルフスエック","Wolfsegg"],["ether","エーテル","Ether"],["crystalhaniwa","水晶埴輪","CrystalHaniwa"],["nimrud","ニムルドレンズ","Nimrud"],["nebra","ネブラディスク","Nebra"],["phaistos","ファイストス円盤","Phaistos"],["mandragora","マンドレイク","Mandragora"],["rohonc","レヒニッツ写本","Rohonc"],["totempole","トーテムポール","TotemPole"],["ancientbattery","古代の電池","Baghdad"],["mysterystone","ミステリーストーン","WinniStone"],["discocolgante","円盤型ペンダント","DiscoColgante"],["hairgrowingdoll","髪伸び人形","Kikuko"],["ancientmedal","古代文明のメダル","AtlantisMedal"],["goldenfleece","黄金の糸","GoldenFleece"],["dodecahedron","中空十二面体","RomanDice"],["goldshuttle","黄金シャトル","Quimbaya"],["ancientrocket","古代ロケット","Rocket"]];
+const eq=[["hat","帽子","Hat"],["gloves","グローブ","Gloves"],["shoes","シューズ","Shoes"],["bag","バッグ","Bag"],["badge","バッジ","Badge"],["hairpin","ヘアピン","Hairpin"],["charm","お守り","Charm"],["watch","腕時計","Watch"],["necklace","ネックレス","Necklace"]];
+const base={bd:{basic:30,intermediate:30,advanced:30,superior:8},notes:{basic:75,intermediate:75,advanced:75,superior:60},ooparts:{basic:828,intermediate:341,advanced:107,superior:45},equipment:60,misc:{reportExp:1249000,credits:95430000,secretNotes:3,universalBlueprint:15525,enhanceExp:2963000,eligma:3400,weaponExp:19605,wbHp:70,wbAtk:70,wbHeal:70}};
+const misc=[["reportExp","レポートEXP","1,249k EXP"],["credits","クレジット","95,430k"],["secretNotes","秘伝ノート","3"],["universalBlueprint","万能設計図（T1〜T9相当）","15,525"],["enhanceExp","強化珠EXP","2,963k EXP"],["eligma","カケラ","3,400"],["weaponExp","固有武器経験値","19,605"],["wbHp","WB・HP","70"],["wbAtk","WB・攻撃","70"],["wbHeal","WB・治癒","70"]];
+const emptyT=()=>({basic:0,intermediate:0,advanced:0,superior:0});
+const initial=()=>({bd:Object.fromEntries(schools.map(([k])=>[k,emptyT()])),notes:Object.fromEntries(schools.map(([k])=>[k,emptyT()])),ooparts:Object.fromEntries(ops.map(([k])=>[k,emptyT()])),equipment:Object.fromEntries(eq.map(([k])=>[k,0])),misc:Object.fromEntries(misc.map(([k])=>[k,0]))});
+function merge(a,b){for(const k in b){if(b[k]&&typeof b[k]==="object"&&!Array.isArray(b[k])){a[k]??={};merge(a[k],b[k])}else a[k]=b[k]}return a}
+let state=(()=>{try{return merge(initial(),JSON.parse(localStorage.getItem(KEY)||"{}"))}catch{return initial()}})();
+const n=v=>Math.max(0,Number(v)||0),r=(v,p)=>p?n(v)/p:0,fr=v=>v===0?"0.00人分":v<.01?"<0.01人分":v.toFixed(2)+"人分";
+function save(){localStorage.setItem(KEY,JSON.stringify(state));summary()}
+function smin(o,b){return Math.min(...tiers.map(([k])=>r(o[k],b[k])))}
+function series(kind,key,label,b,img){const c=document.createElement("div");c.className="card";c.dataset.label=label;c.innerHTML=(img?'<div class="imgline"><img class="icon" src="'+img+'" alt="'+label+'"><div class="caption">最上級ゲーム内アイコン</div></div>':'')+'<div class="head"><div class="name">'+label+'</div><div class="score"></div></div><div class="rows"><div class="row h"><div>等級</div><div>所持数</div><div>1人分</div><div>人数換算</div></div>'+tiers.map(([k,l])=>'<div class="row"><div>'+l+'</div><input data-k="'+k+'" type="number" min="0"><div class="right muted">'+b[k].toLocaleString()+'</div><div data-r="'+k+'" class="right ratio"></div></div>').join("")+'</div>';function up(){const sc=smin(state[kind][key],b);c.dataset.score=sc;c.querySelector(".score").textContent=fr(sc);tiers.forEach(([k])=>c.querySelector('[data-r="'+k+'"]').textContent=fr(r(state[kind][key][k],b[k])))}tiers.forEach(([k])=>{const i=c.querySelector('[data-k="'+k+'"]');i.value=state[kind][key][k]||"";i.oninput=()=>{state[kind][key][k]=n(i.value);save();up();if(kind==="ooparts")sortOps()}});up();return c}
+function renderSeries(){bdGrid.innerHTML="";notesGrid.innerHTML="";opGrid.innerHTML="";schools.forEach(([k,l])=>{bdGrid.append(series("bd",k,l,base.bd));notesGrid.append(series("notes",k,l,base.notes))});ops.forEach(([k,l,code])=>opGrid.append(series("ooparts",k,l,base.ooparts,"https://raw.githubusercontent.com/coup-d-etat-pinkgorilla/planner_of_plana/main/BA%20Planner/v6/templates/inventory_detail/ooparts/Item_Icon_Material_"+code+"_3.png")))}
+function renderEq(){eqGrid.innerHTML="";eq.forEach(([k,l,code])=>{const x=document.createElement("div");x.className="mini";x.innerHTML='<div class="imgline"><img class="icon" src="https://raw.githubusercontent.com/GuestGhost/Blue-Archive-Img/main/images/Equipment_Icon_'+code+'_Tier10.png" alt="'+l+'"><div class="caption">T10ゲーム内アイコン</div></div><div class="name">'+l+'</div><input type="number" min="0"><div class="meta"><span>1人分：60</span><strong></strong></div>';const i=x.querySelector("input"),o=x.querySelector("strong");i.value=state.equipment[k]||"";const up=()=>o.textContent=fr(r(state.equipment[k],60));i.oninput=()=>{state.equipment[k]=n(i.value);save();up()};up();eqGrid.append(x)})}
+function renderMisc(){miscGrid.innerHTML="";misc.forEach(([k,l,bl])=>{const x=document.createElement("div");x.className="mini";x.innerHTML='<div class="name">'+l+'</div><input type="number" min="0"><div class="meta"><span>1人分：'+bl+'</span><strong></strong></div>';const i=x.querySelector("input"),o=x.querySelector("strong");i.value=state.misc[k]||"";const up=()=>o.textContent=fr(r(state.misc[k],base.misc[k]));i.oninput=()=>{state.misc[k]=n(i.value);save();up()};up();miscGrid.append(x)})}
+function summary(){const rows=[];schools.forEach(([k,l])=>{rows.push([l+" BD",smin(state.bd[k],base.bd)]);rows.push([l+" ノート",smin(state.notes[k],base.notes)])});ops.forEach(([k,l])=>rows.push([l,smin(state.ooparts[k],base.ooparts)]));eq.forEach(([k,l])=>rows.push(["T10 "+l,r(state.equipment[k],60)]));misc.forEach(([k,l])=>rows.push([l,r(state.misc[k],base.misc[k])]));rows.sort((a,b)=>a[1]-b[1]||a[0].localeCompare(b[0],"ja"));summaryBody.innerHTML=rows.map(([a,b])=>"<tr><td>"+a+"</td><td><b>"+fr(b)+"</b></td></tr>").join("")}
+function sortOps(){const q=opSearch.value.trim().toLowerCase(),s=opSort.value,c=[...opGrid.children];c.forEach(x=>x.style.display=x.dataset.label.toLowerCase().includes(q)?"":"none");c.sort((a,b)=>s==="asc"?+a.dataset.score-+b.dataset.score:s==="desc"?+b.dataset.score-+a.dataset.score:a.dataset.label.localeCompare(b.dataset.label,"ja")).forEach(x=>opGrid.append(x))}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.tab).classList.add("active")});
+opSearch.oninput=sortOps;opSort.onchange=sortOps;
+exportBtn.onclick=()=>{const u=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="bluearchive-materials.json";a.click();URL.revokeObjectURL(u)};
+importFile.onchange=async e=>{const f=e.target.files[0];if(!f)return;try{state=merge(initial(),JSON.parse(await f.text()));save();render()}catch{alert("JSONの読み込みに失敗しました")}e.target.value=""};
+resetBtn.onclick=()=>{if(confirm("入力した素材数をすべて初期化しますか？")){state=initial();save();render()}};
+function render(){renderSeries();renderEq();renderMisc();summary();sortOps()}render();
+</script>
+</body></html>
