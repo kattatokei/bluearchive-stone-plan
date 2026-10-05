@@ -306,30 +306,37 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
   }
   .num{white-space:normal}
   .plan-table-wrap th:nth-child(1), .plan-table-wrap td:nth-child(1){width:14%}
-  .plan-table-wrap th:nth-child(2), .plan-table-wrap td:nth-child(2){width:14%}
-  .plan-table-wrap th:nth-child(3), .plan-table-wrap td:nth-child(3){width:28%}
-  .plan-table-wrap th:nth-child(4), .plan-table-wrap td:nth-child(4){width:13%}
-  .plan-table-wrap th:nth-child(5), .plan-table-wrap td:nth-child(5){width:16%}
+  .plan-table-wrap th:nth-child(2), .plan-table-wrap td:nth-child(2){width:17%}
+  .plan-table-wrap th:nth-child(3), .plan-table-wrap td:nth-child(3){width:25%}
+  .plan-table-wrap th:nth-child(4), .plan-table-wrap td:nth-child(4){width:12%}
+  .plan-table-wrap th:nth-child(5), .plan-table-wrap td:nth-child(5){width:17%}
   .plan-table-wrap th:nth-child(6), .plan-table-wrap td:nth-child(6){width:15%}
 
   .report-wrap table{font-size:8px}
   .report-wrap th,.report-wrap td{padding:4px 3px}
   .report-head-row th{font-size:10px;padding:6px 2px}
-  .income-header-wrap{gap:2px;flex-wrap:nowrap}
+  .income-header-wrap{
+    gap:2px;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    overflow:hidden;
+  }
   .income-header-wrap > span{
     height:22px;
+    flex:0 0 auto;
     font-size:9px;
     line-height:1;
   }
   .income-header-wrap select{
-    width:76px !important;
-    min-width:76px !important;
-    max-width:76px !important;
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
     height:22px !important;
     min-height:22px !important;
+    flex:0 0 42px;
     font-size:8px;
     line-height:1;
-    padding:1px 12px 1px 3px !important;
+    padding:1px 11px 1px 2px !important;
     border-radius:6px;
   }
   .report-month-head{gap:2px}
@@ -726,6 +733,17 @@ function subscriptionLabel(type){
     sub60:"サブスク（60/日）"
   })[type] || "無課金";
 }
+function syncBulkIncomeOptionLabels(){
+  const sel=document.getElementById("bulkIncomeType");
+  if(!sel) return;
+  const mobile=window.matchMedia("(max-width:800px)").matches;
+  const labels=mobile
+    ? {free:"無課金",sub20:"20/日",sub40:"40/日",sub60:"60/日"}
+    : {free:"無課金",sub20:"サブスク（20/日）",sub40:"サブスク（40/日）",sub60:"サブスク（60/日）"};
+  [...sel.options].forEach(opt=>{
+    if(labels[opt.value]) opt.textContent=labels[opt.value];
+  });
+}
 function subscriptionPaidAmount(type,days){
   days=Number(days||0);
   if(type==="sub20") return 192 + days*20;
@@ -920,6 +938,7 @@ function renderPlan(){
     body.appendChild(tr);
   }
   const bulkIncomeType=document.getElementById("bulkIncomeType");
+  syncBulkIncomeOptionLabels();
   const editableIncomeMonths=rows.filter(r=>r.type!=="actual").map(r=>r.key);
   const incomeTypes=[...new Set(editableIncomeMonths.map(k=>data.months[k].incomeType))];
   if(bulkIncomeType){
@@ -1433,6 +1452,8 @@ document.getElementById("resetData").onclick=()=>{
   customReportStart=data.appStartMonth;
   ensureInitialMonths();save();renderAll();
 };
+
+window.addEventListener("resize",syncBulkIncomeOptionLabels);
 
 window.blueArchiveLocal = {
   getData:()=>clone(data),
