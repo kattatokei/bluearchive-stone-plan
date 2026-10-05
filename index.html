@@ -21,6 +21,34 @@ nav{display:flex;gap:8px;flex-wrap:wrap}
 .nav-btn{border:0;background:#eef2f7;padding:9px 14px;border-radius:10px}
 .nav-btn.active{background:#1e293b;color:white}
 .save-state{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap}
+.initial-balance-panel{
+  border:1px solid #dbe7f3;
+  background:#fbfdff;
+}
+.initial-balance-onboarding{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.initial-balance-copy{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  min-width:0;
+}
+.initial-balance-copy strong{font-size:14px;white-space:nowrap}
+.initial-balance-onboarding input{
+  width:160px;
+  min-width:160px;
+  height:36px;
+  min-height:36px;
+  padding:7px 10px;
+}
+.initial-balance-onboarding button{
+  min-height:36px;
+  padding:7px 14px;
+  white-space:nowrap;
+}
 .cloud-auth{display:flex;align-items:center;gap:8px;min-width:0}
 .cloud-user{font-size:12px;color:var(--muted);max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cloud-auth-btn{padding:7px 10px;min-height:34px;white-space:nowrap}
@@ -57,6 +85,7 @@ main{max-width:1400px;margin:22px auto;padding:0 24px 56px}
 table{border-collapse:collapse;width:100%;min-width:980px}
 th,td{border-bottom:1px solid var(--line);padding:13px 14px;text-align:left;vertical-align:top}
 th{background:#f8fafc;font-size:13px;white-space:nowrap}
+.plan-table-wrap thead th{line-height:1.2}
 tr:last-child td{border-bottom:0}
 .month-cell{font-weight:700;white-space:nowrap}
 .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:700}
@@ -92,6 +121,42 @@ tr:last-child td{border-bottom:0}
 .form-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:14px}
 label{display:block;font-size:12px;color:var(--muted);margin-bottom:7px}
 input,select,textarea{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:white;min-height:42px}
+
+/* 表ヘッダーの縦位置を統一 */
+.plan-table-wrap thead th,
+.report-wrap thead th{
+  vertical-align:middle;
+}
+
+/* 石計画「収入」横の一括選択を、見出しと同じ高さ感に揃える */
+.income-header-wrap{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+  line-height:1;
+}
+.income-header-wrap > span{
+  display:inline-flex;
+  align-items:center;
+  height:30px;
+  font-size:13px;
+  line-height:1;
+}
+.income-header-wrap select{
+  width:128px !important;
+  min-width:128px !important;
+  max-width:128px !important;
+  height:30px !important;
+  min-height:30px !important;
+  padding:2px 24px 2px 7px !important;
+  margin:0;
+  border-radius:8px;
+  font-size:12px;
+  line-height:1;
+  font-weight:600;
+  vertical-align:middle;
+}
 textarea{min-height:68px;resize:vertical}
 .gacha-card{border:1px solid var(--line);border-left:7px solid #94a3b8;border-radius:12px;padding:12px;margin-top:10px}
 .gacha-card.permanent{border-left-color:#60a5fa}.gacha-card.limited{border-left-color:#8b5cf6}.gacha-card.anniversary{border-left-color:#f59e0b}.gacha-card.free100{border-left-color:#22c55e}
@@ -173,7 +238,7 @@ textarea{min-height:68px;resize:vertical}
 .report-table tr.expense-row td:first-child,
 .report-table tr.expense-total td:first-child,
 .report-table tr.balance-row td:first-child{background:inherit}
-.actual-inputs{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px}
+.actual-inputs{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px;align-items:end}
 .tx-list{margin-top:12px;border-top:1px solid var(--line)}
 .tx-item{display:grid;grid-template-columns:130px 120px 1fr 110px auto;gap:10px;padding:12px 0;border-bottom:1px solid #eef2f7;align-items:center}
 .note{color:var(--muted);font-size:13px}
@@ -250,6 +315,23 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
   .report-wrap table{font-size:8px}
   .report-wrap th,.report-wrap td{padding:4px 3px}
   .report-head-row th{font-size:10px;padding:6px 2px}
+  .income-header-wrap{gap:2px;flex-wrap:nowrap}
+  .income-header-wrap > span{
+    height:22px;
+    font-size:9px;
+    line-height:1;
+  }
+  .income-header-wrap select{
+    width:76px !important;
+    min-width:76px !important;
+    max-width:76px !important;
+    height:22px !important;
+    min-height:22px !important;
+    font-size:8px;
+    line-height:1;
+    padding:1px 12px 1px 3px !important;
+    border-radius:6px;
+  }
   .report-month-head{gap:2px}
   .report-month-head .report-add-tx{
     width:18px;min-width:18px;height:18px;
@@ -267,6 +349,16 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
   .cloud-auth{margin-left:auto}
   .cloud-user{display:none}
   .cloud-auth-btn{font-size:11px;padding:7px 9px}
+  .initial-balance-onboarding{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px;
+  }
+  .initial-balance-copy{grid-column:1/-1}
+  .initial-balance-onboarding input{
+    width:100%;
+    min-width:0;
+  }
   .toolbar{gap:7px}
   .primary,.secondary,.danger{font-size:11px;padding:7px 9px;min-height:34px}
 }
@@ -303,10 +395,31 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
     
   </div>
 
+  <div class="panel initial-balance-panel" id="initialBalancePrompt" style="display:none">
+    <div class="initial-balance-onboarding">
+      <div class="initial-balance-copy">
+        <strong>今月初めの残高</strong>
+        <span class="help" id="initialBalancePromptHelp">石計画の開始残高を入力してください。</span>
+      </div>
+      <input id="initialBalanceInput" type="number" min="0" placeholder="現在の石数">
+      <button class="primary" id="saveInitialBalance">設定</button>
+    </div>
+  </div>
+
   <div class="plan-table-wrap">
     <table>
       <thead><tr>
-        <th>月</th><th>収入</th><th>ガチャ予定</th><th class="num">支出</th><th class="num">月末残高</th><th class="num">余剰石</th>
+        <th>月</th><th>
+          <div class="income-header-wrap">
+            <span>収入</span>
+            <select id="bulkIncomeType" title="表示中の月を一括変更">
+              <option value="free">無課金</option>
+              <option value="sub20">サブスク（20/日）</option>
+              <option value="sub40">サブスク（40/日）</option>
+              <option value="sub60">サブスク（60/日）</option>
+            </select>
+          </div>
+        </th><th>ガチャ予定</th><th class="num">支出</th><th class="num">月末残高</th><th class="num">余剰石</th>
       </tr></thead>
       <tbody id="planBody"></tbody>
     </table>
@@ -338,13 +451,18 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
     <div class="actual-inputs">
       <div><label>対象月</label><select id="closingMonth"></select></div>
       <div><label>期末残高</label><input id="closingBalance" type="number" min="0" placeholder="例 73957"></div>
-      <div><label>サブスク</label><select id="closingSub"><option value="yes">あり</option><option value="no">なし</option></select></div>
+      <div><label>収入区分</label><select id="closingSub">
+        <option value="free">無課金</option>
+        <option value="sub20">サブスク（20/日）</option>
+        <option value="sub40">サブスク（40/日）</option>
+        <option value="sub60">サブスク（60/日）</option>
+      </select></div>
       <div><label>月途中加入など</label><input id="closingDaysOverride" type="number" min="0" max="31" placeholder="空欄=その月の日数"></div>
     </div>
     <div class="toolbar" style="margin-top:12px">
       <button class="primary" id="finalizeMonth">この月を確定</button>
       <button class="secondary" id="unfinalizeMonth">確定を解除</button>
-      <span class="help">課金石収入 = 日数 × 60 + 592（サブスクありの場合）。無料石収入は期末残高から逆算します。</span>
+      <span class="help">有償石収入：20/日＝192＋日数×20、40/日＝400＋日数×40、60/日＝592＋日数×60。無料石収入は期末残高から逆算します。</span>
     </div>
   </div>
 
@@ -357,8 +475,8 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
 <section class="page" id="page-settings">
 <div class="panel">
     <h2 class="section-title">収入設定</h2>
-    <div class="setting-row"><div>無課金想定月収</div><input id="setFreeIncome" type="number"><div class="help">計画表で「無課金」を選んだ月に使います。</div></div>
-    <div class="setting-row"><div>サブスク想定月収</div><input id="setSubIncome" type="number"><div class="help">計画表で「サブスク」を選んだ月の総収入想定です。</div></div>
+    <div class="setting-row"><div>基本月収（無課金）</div><input id="setFreeIncome" type="number"><div class="help">全プランの基本月収です。サブスク選択時は、ここに有償石分を加算します。</div></div>
+    <div class="setting-row"><div>サブスク分</div><strong>日数から自動計算</strong><div class="help">無課金想定月収に、選んだサブスクの有償石分を加算します。</div></div>
   </div>
   <div class="panel">
     <h2 class="section-title">ガチャ設定</h2>
@@ -377,7 +495,7 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
   </div>
   <div class="panel">
     <h2 class="section-title">初期設定</h2>
-    <div class="setting-row"><div>2026年10月 期首残高</div><input id="setBaseBalance" type="number" min="0"><div class="help">最初の1回だけ使う基準値。10月確定後は通常触りません。</div></div>
+    <div class="setting-row"><div id="baseBalanceSettingLabel">開始月初めの残高</div><input id="setBaseBalance" type="number" min="0"><div class="help" id="baseBalanceSettingHelp">このサイトを使い始めた月の開始残高です。</div></div>
   </div>
     <div class="panel">
     <h2 class="section-title">データ管理</h2>
@@ -463,11 +581,13 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
 const STORAGE_KEY = "bluearchive_stone_plan_v1";
 const now = new Date();
 const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
-const PLAN_START_MONTH = "2026-10";
+const LEGACY_START_MONTH = "2026-10";
 
 const defaults = {
-  version:1,
-  baseBalance: 0,
+  version:2,
+  appStartMonth: currentMonthKey,
+  baseBalance: null,
+  baseBalanceInitialized: false,
   settings:{
     freeMonthlyIncome:14000,
     subMonthlyIncome:16500,
@@ -487,24 +607,47 @@ const defaults = {
 };
 
 function clone(x){return JSON.parse(JSON.stringify(x))}
+function inferLegacyStartMonth(d){
+  const keys=[
+    ...Object.keys(d?.months||{}),
+    ...Object.keys(d?.plans?.average||{}),
+    ...Object.keys(d?.plans?.guaranteed||{}),
+    ...Object.keys(d?.closings||{}),
+    ...(d?.transactions||[]).map(t=>t.month||t.date?.slice(0,7)).filter(Boolean)
+  ].filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();
+  return keys[0] || currentMonthKey;
+}
+function normalizeDataObject(d){
+  const incoming=d||{};
+  const inferredStart=incoming.appStartMonth || inferLegacyStartMonth(incoming);
+  const inferredBaseSet = incoming.baseBalanceInitialized !== undefined
+    ? !!incoming.baseBalanceInitialized
+    : (incoming.baseBalance !== undefined && incoming.baseBalance !== null && Number(incoming.baseBalance)!==0);
+  return {
+    ...clone(defaults), ...incoming,
+    version:2,
+    appStartMonth: inferredStart || currentMonthKey,
+    baseBalance: incoming.baseBalance ?? null,
+    baseBalanceInitialized: inferredBaseSet,
+    settings:{...clone(defaults.settings), ...(incoming.settings||{})},
+    months:incoming.months||{},
+    plans:{average:incoming.plans?.average||{}, guaranteed:incoming.plans?.guaranteed||{}},
+    transactions:incoming.transactions||[],
+    closings:incoming.closings||{}
+  };
+}
 function loadData(){
   try{
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw) return clone(defaults);
-    const d=JSON.parse(raw);
-    return {
-      ...clone(defaults), ...d,
-      settings:{...clone(defaults.settings), ...(d.settings||{})},
-      months:d.months||{}, plans:{average:d.plans?.average||{}, guaranteed:d.plans?.guaranteed||{}},
-      transactions:d.transactions||[], closings:d.closings||{}
-    };
+    return normalizeDataObject(JSON.parse(raw));
   }catch(e){return clone(defaults)}
 }
 let data=loadData();
 let activeMode="average";
 let activePage="plan";
 let reportRange="6";
-let customReportStart=PLAN_START_MONTH;
+let customReportStart=data.appStartMonth;
 let customReportEnd=currentMonthKey;
 let txTargetMonth=currentMonthKey;
 let txPlanOptions=[];
@@ -537,46 +680,83 @@ function monthType(key){
   return "plan";
 }
 function ensureMonth(key){
-  if(!data.months[key]) data.months[key]={incomeType:"subscription", incomeAdjustment:0};
+  if(!data.months[key]) data.months[key]={incomeType:"free", incomeAdjustment:0};
+  // 旧形式で区分が曖昧な月は、新しいデフォルトの無課金として扱う
+  if(data.months[key].incomeType==="subscription") data.months[key].incomeType="free";
+  if(!["free","sub20","sub40","sub60"].includes(data.months[key].incomeType)) data.months[key].incomeType="free";
   if(!data.plans.average[key]) data.plans.average[key]={gachas:[],memo:""};
   if(!data.plans.guaranteed[key]) data.plans.guaranteed[key]={gachas:[],memo:""};
 }
 function ensureInitialMonths(){
-  // 初期開始は2026年10月。以後は「当月〜7か月後」までを自動で用意する。
-  const start = currentMonthKey < PLAN_START_MONTH ? PLAN_START_MONTH : currentMonthKey;
-  for(let i=0;i<=7;i++) ensureMonth(addMonths(start,i));
-  // 2026年10月より前は使わない
-  Object.keys(data.months).forEach(k=>{ if(k < PLAN_START_MONTH) delete data.months[k]; });
+  if(!data.appStartMonth) data.appStartMonth=currentMonthKey;
+
+  // 初回利用月から履歴を持ち、表示用には当月〜7か月後までを自動生成する。
+  const visibleStart = currentMonthKey < data.appStartMonth ? data.appStartMonth : currentMonthKey;
+  const end = addMonths(visibleStart,7);
+  let m=data.appStartMonth;
+  while(m<=end){
+    ensureMonth(m);
+    m=addMonths(m,1);
+  }
+
+  // このユーザーが利用を始める前の月は扱わない。
+  Object.keys(data.months).forEach(k=>{ if(k < data.appStartMonth) delete data.months[k]; });
   ["average","guaranteed"].forEach(mode=>{
-    Object.keys(data.plans[mode]||{}).forEach(k=>{ if(k < PLAN_START_MONTH) delete data.plans[mode][k]; });
+    Object.keys(data.plans[mode]||{}).forEach(k=>{ if(k < data.appStartMonth) delete data.plans[mode][k]; });
   });
-  Object.keys(data.closings||{}).forEach(k=>{ if(k < PLAN_START_MONTH) delete data.closings[k]; });
-  data.transactions = (data.transactions||[]).filter(t => !t.date || t.date.slice(0,7) >= PLAN_START_MONTH);
+  Object.keys(data.closings||{}).forEach(k=>{ if(k < data.appStartMonth) delete data.closings[k]; });
+  data.transactions = (data.transactions||[]).filter(t=>{
+    const month=t.month||t.date?.slice(0,7);
+    return !month || month>=data.appStartMonth;
+  });
 }
 ensureInitialMonths();
 
 function sortedMonths(){ return Object.keys(data.months).sort(); }
 function visiblePlanMonths(){
-  const start = currentMonthKey < PLAN_START_MONTH ? PLAN_START_MONTH : currentMonthKey;
+  const start = currentMonthKey < data.appStartMonth ? data.appStartMonth : currentMonthKey;
   const end = addMonths(start,7);
   return sortedMonths().filter(k=>k>=start && k<=end);
+}
+function subscriptionLabel(type){
+  return ({
+    free:"無課金",
+    sub20:"サブスク（20/日）",
+    sub40:"サブスク（40/日）",
+    sub60:"サブスク（60/日）"
+  })[type] || "無課金";
+}
+function subscriptionPaidAmount(type,days){
+  days=Number(days||0);
+  if(type==="sub20") return 192 + days*20;
+  if(type==="sub40") return 400 + days*40;
+  if(type==="sub60") return 592 + days*60;
+  return 0;
 }
 function getMonthlyIncome(key){
   ensureMonth(key);
   const m=data.months[key];
-  const base=m.incomeType==="free"?data.settings.freeMonthlyIncome:data.settings.subMonthlyIncome;
-  return Number(base)+Number(m.incomeAdjustment||0);
+  const paid=subscriptionPaidAmount(m.incomeType,monthDays(key));
+  return Number(data.settings.freeMonthlyIncome||0)+paid+Number(m.incomeAdjustment||0);
 }
 function paidIncomeForMonth(key){
   ensureMonth(key);
   const c=data.closings[key]||{};
-  let hasSub;
-  if(c.subscription==="yes") hasSub=true;
-  else if(c.subscription==="no") hasSub=false;
-  else hasSub=data.months[key].incomeType==="subscription";
-  if(!hasSub) return 0;
-  const days=(c.daysOverride!==undefined && c.daysOverride!==null && c.daysOverride!=="")?Number(c.daysOverride):monthDays(key);
-  return days*60+592;
+  let type=c.subscriptionTier;
+
+  // 旧形式の月末確定データもそのまま読めるようにする
+  if(!type){
+    if(c.subscription==="yes") type="sub60";
+    else if(c.subscription==="no") type="free";
+    else type=data.months[key].incomeType;
+  }
+  if(type==="subscription") type="sub60";
+  if(!["free","sub20","sub40","sub60"].includes(type)) type="free";
+
+  const days=(c.daysOverride!==undefined && c.daysOverride!==null && c.daysOverride!=="")
+    ? Number(c.daysOverride)
+    : monthDays(key);
+  return subscriptionPaidAmount(type,days);
 }
 function planSignature(g){
   return `${(g.name||"").trim()}|${g.category}|${String(g.choice ?? g.pickupCount ?? 1)}`;
@@ -718,7 +898,7 @@ function renderPlan(){
     const ghtml = r.type==="actual"
       ? `<span class="note">ガチャ実績 ${yen(txSum(r.key,"gacha"))}石</span>`
       : `<div class="gacha-list">${p.gachas.length?p.gachas.map(g=>`<button class="gacha-chip ${g.category} ${g.done?"done":""} open-gacha-dialog" data-month="${r.key}" data-id="${g.id}" style="border:0;text-align:left;cursor:pointer"><strong>${escapeHtml((g.name||"").trim() || categoryName(g.category))}</strong><br>${categoryName(g.category)} / ${gachaChoice(g)}</button>`).join(""):`<button class="ghost-add quick-add-gacha" data-month="${r.key}">＋ ガチャ追加</button>`}</div>`;
-    const incomeText = r.type==="actual" ? yen(r.income) : `${data.months[r.key].incomeType==="free"?"無課金":"サブスク"} ${yen(r.income)}`;
+    const incomeText = yen(r.income);
     const cumulativePu = cumulativePlannedPU(r.key, activeMode);
     const extraPu = Math.max(0, cumulativePu - 2);
     const halfBuffer = extraPu * 5000;
@@ -738,6 +918,21 @@ function renderPlan(){
       <td class="num safety ${safetyClass}" title="予定PU累計 ${cumulativePu}PU / 追加下振れ目安 ${yen(fullBuffer)}石">${r.safety>=0?"+":""}${yen(r.safety)}</td>
       `;
     body.appendChild(tr);
+  }
+  const bulkIncomeType=document.getElementById("bulkIncomeType");
+  const editableIncomeMonths=rows.filter(r=>r.type!=="actual").map(r=>r.key);
+  const incomeTypes=[...new Set(editableIncomeMonths.map(k=>data.months[k].incomeType))];
+  if(bulkIncomeType){
+    bulkIncomeType.disabled=editableIncomeMonths.length===0;
+    bulkIncomeType.value=incomeTypes.length===1 ? incomeTypes[0] : "free";
+    bulkIncomeType.onchange=()=>{
+      for(const key of editableIncomeMonths){
+        ensureMonth(key);
+        data.months[key].incomeType=bulkIncomeType.value;
+      }
+      save();
+      renderAll();
+    };
   }
   document.querySelectorAll(".quick-add-gacha").forEach(b=>b.onclick=(e)=>{
     e.stopPropagation();
@@ -887,7 +1082,7 @@ document.getElementById("saveAndAddAnotherGacha").onclick=()=>saveGachaFromDialo
 
 function reportAvailableMonths(){
   const out=[];
-  let m=PLAN_START_MONTH;
+  let m=data.appStartMonth;
   while(m<=currentMonthKey){
     out.push(m);
     m=addMonths(m,1);
@@ -984,37 +1179,78 @@ function renderReport(){
   renderTransactions();
 }
 function loadClosingForm(key){
-  if(!key || key < PLAN_START_MONTH) return;
+  if(!key || key < data.appStartMonth) return;
   ensureMonth(key); const c=data.closings[key]||{};
   document.getElementById("closingBalance").value=c.closingBalance??"";
-  const plannedSub = data.months[key].incomeType==="subscription" ? "yes" : "no";
-  document.getElementById("closingSub").value=(c.subscription==="yes"||c.subscription==="no") ? c.subscription : plannedSub;
+  let closingType=c.subscriptionTier;
+  if(!closingType){
+    if(c.subscription==="yes") closingType="sub60";
+    else if(c.subscription==="no") closingType="free";
+    else closingType=data.months[key].incomeType;
+  }
+  if(closingType==="subscription") closingType="sub60";
+  document.getElementById("closingSub").value=["free","sub20","sub40","sub60"].includes(closingType) ? closingType : "free";
   document.getElementById("closingDaysOverride").value=c.daysOverride??"";
 }
 function renderTransactions(){
   const root=document.getElementById("txList");
   const tx=[...data.transactions].filter(t=>t.type!=="ticket").sort((a,b)=>String(b.month||b.date||"").localeCompare(String(a.month||a.date||"")));
   root.innerHTML=tx.length?tx.map(t=>`<div class="tx-item">
-    <div>${fullMonthLabel(t.month||t.date?.slice(0,7)||PLAN_START_MONTH)}</div><div>${({gacha:"ガチャ",refresh:"石割り",other:"その他支出",otherIncome:"その他収入"})[t.type]||t.type}</div><div>${t.linkedPlanLabel?escapeHtml(t.linkedPlanLabel):""}</div><div class="num">${yen(t.amount)}</div><button class="link-btn tx-del" data-id="${t.id}">削除</button>
+    <div>${fullMonthLabel(t.month||t.date?.slice(0,7)||data.appStartMonth)}</div><div>${({gacha:"ガチャ",refresh:"石割り",other:"その他支出",otherIncome:"その他収入"})[t.type]||t.type}</div><div>${t.linkedPlanLabel?escapeHtml(t.linkedPlanLabel):""}</div><div class="num">${yen(t.amount)}</div><button class="link-btn tx-del" data-id="${t.id}">削除</button>
   </div>`).join(""):'<div class="note" style="padding:12px 0">まだ明細はありません。</div>';
   root.querySelectorAll(".tx-del").forEach(b=>b.onclick=()=>{deleteTransactionById(b.dataset.id);renderAll()});
 }
 
+function renderInitialBalancePrompt(){
+  const panel=document.getElementById("initialBalancePrompt");
+  const input=document.getElementById("initialBalanceInput");
+  const help=document.getElementById("initialBalancePromptHelp");
+  const btn=document.getElementById("saveInitialBalance");
+  if(!panel||!input||!btn) return;
+
+  panel.style.display=data.baseBalanceInitialized?"none":"block";
+  if(help){
+    help.textContent=`${fullMonthLabel(data.appStartMonth)}の月初時点の石数を入力してください。`;
+  }
+  if(!data.baseBalanceInitialized) input.value="";
+
+  btn.onclick=()=>{
+    if(input.value==="") return alert("今月初めの残高を入力してください。");
+    data.baseBalance=Number(input.value);
+    data.baseBalanceInitialized=true;
+    save();
+    renderAll();
+  };
+}
 function renderSettings(){
   const s=data.settings;
   const baseEl=document.getElementById("setBaseBalance");
+  const baseLabel=document.getElementById("baseBalanceSettingLabel");
+  const baseHelp=document.getElementById("baseBalanceSettingHelp");
+  if(baseLabel) baseLabel.textContent=`${fullMonthLabel(data.appStartMonth)} 初めの残高`;
+  if(baseHelp) baseHelp.textContent="このサイトを使い始めた月の開始残高です。";
   if(baseEl){
-    baseEl.value=data.baseBalance;
-    baseEl.onchange=e=>{data.baseBalance=Number(e.target.value||0);save();renderAll();};
+    baseEl.value=data.baseBalanceInitialized ? data.baseBalance : "";
+    baseEl.onchange=e=>{
+      if(e.target.value===""){
+        data.baseBalance=null;
+        data.baseBalanceInitialized=false;
+      }else{
+        data.baseBalance=Number(e.target.value);
+        data.baseBalanceInitialized=true;
+      }
+      save();
+      renderAll();
+    };
   }
-  [["setFreeIncome","freeMonthlyIncome"],["setSubIncome","subMonthlyIncome"],["setNormalAvg","normalAvg"],["setNormalGuaranteed","normalGuaranteed"],
+  [["setFreeIncome","freeMonthlyIncome"],["setNormalAvg","normalAvg"],["setNormalGuaranteed","normalGuaranteed"],
    ["setFree100One","free100AvgOne"],["setFree100Two","free100AvgTwo"],["setFree100GuaranteedOne","free100GuaranteedOne"],["setFree100GuaranteedTwo","free100GuaranteedTwo"],
    ["setDownside","downsideReserve"],["setExtra","extraReserve"]].forEach(([id,key])=>{
     const el=document.getElementById(id); el.value=s[key]; el.onchange=e=>{s[key]=Number(e.target.value||0);save();renderAll()};
   });
   document.getElementById("settingSafetyLine").textContent=yen(s.downsideReserve+s.extraReserve)+"石";
 }
-function renderAll(){renderPlan();renderReport();renderSettings()}
+function renderAll(){renderInitialBalancePrompt();renderPlan();renderReport();renderSettings()}
 
 document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>{
   activePage=b.dataset.page;
@@ -1114,7 +1350,7 @@ document.getElementById("cancelTx").onclick=()=>dlg.close();
 document.getElementById("saveTx").onclick=()=>{
   const amount=Number(document.getElementById("txAmount").value||0);
   const type=document.getElementById("txType").value;
-  if(!txTargetMonth || txTargetMonth < PLAN_START_MONTH || amount<0) return alert("数量を確認してください。");
+  if(!txTargetMonth || txTargetMonth < data.appStartMonth || amount<0) return alert("数量を確認してください。");
 
   let linkedPlans=[];
   let linkedPlanLabel="";
@@ -1159,15 +1395,21 @@ document.getElementById("applyPeriod").onclick=()=>{
 };
 document.getElementById("finalizeMonth").onclick=()=>{
   const key=document.getElementById("closingMonth").value;
-  if(!key || key < PLAN_START_MONTH) return alert("収支記録は2026年10月からです。");
+  if(!key || key < data.appStartMonth) return alert(`収支記録は${fullMonthLabel(data.appStartMonth)}からです。`);
   const v=document.getElementById("closingBalance").value;
   if(v==="")return alert("期末残高を入力してください。");
-  data.closings[key]={...(data.closings[key]||{}),closingBalance:Number(v),subscription:document.getElementById("closingSub").value,daysOverride:document.getElementById("closingDaysOverride").value===""?null:Number(document.getElementById("closingDaysOverride").value),finalized:true};
+  data.closings[key]={
+    ...(data.closings[key]||{}),
+    closingBalance:Number(v),
+    subscriptionTier:document.getElementById("closingSub").value,
+    daysOverride:document.getElementById("closingDaysOverride").value===""?null:Number(document.getElementById("closingDaysOverride").value),
+    finalized:true
+  };
   ensureMonth(addMonths(key,1)); save(); renderAll();
 };
 document.getElementById("unfinalizeMonth").onclick=()=>{
   const key=document.getElementById("closingMonth").value;
-  if(!key || key < PLAN_START_MONTH) return;
+  if(!key || key < data.appStartMonth) return;
   if(data.closings[key])data.closings[key].finalized=false;
   save();renderAll();
 };
@@ -1184,24 +1426,19 @@ document.getElementById("importJson").onchange=async e=>{
 };
 document.getElementById("resetData").onclick=()=>{
   if(!confirm("石計画・実績・設定をすべて削除します。元に戻せません。よろしいですか？"))return;
-  data=clone(defaults);ensureInitialMonths();save();renderAll();
+  data=clone(defaults);
+  data.appStartMonth=currentMonthKey;
+  data.baseBalance=null;
+  data.baseBalanceInitialized=false;
+  customReportStart=data.appStartMonth;
+  ensureInitialMonths();save();renderAll();
 };
 
 window.blueArchiveLocal = {
   getData:()=>clone(data),
   replaceData:(incoming)=>{
     if(!incoming || typeof incoming!=="object") return;
-    data={
-      ...clone(defaults), ...incoming,
-      settings:{...clone(defaults.settings), ...(incoming.settings||{})},
-      months:incoming.months||{},
-      plans:{
-        average:incoming.plans?.average||{},
-        guaranteed:incoming.plans?.guaranteed||{}
-      },
-      transactions:incoming.transactions||[],
-      closings:incoming.closings||{}
-    };
+    data=normalizeDataObject(incoming);
     ensureInitialMonths();
     localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
     renderAll();
@@ -1316,14 +1553,16 @@ btn.addEventListener("click",async()=>{
     }
   }catch(err){
     console.error("Google auth failed",err);
-    if(err?.code==="auth/popup-closed-by-user"){
+    const code=err?.code || "unknown";
+    const message=err?.message || "詳細不明";
+    if(code==="auth/popup-closed-by-user"){
       saveState.textContent="ログインをキャンセル";
-    }else if(err?.code==="auth/unauthorized-domain"){
-      alert("このGitHub PagesドメインがFirebaseの承認済みドメインに登録されていません。");
-      saveState.textContent="Googleログイン設定エラー";
+    }else if(code==="auth/unauthorized-domain"){
+      alert(`Googleログインに失敗しました。\n\nエラー: ${code}\n\nこのGitHub PagesドメインがFirebaseの承認済みドメインに登録されているか確認してください。\n\n${message}`);
+      saveState.textContent=`ログインエラー: ${code}`;
     }else{
-      alert("Googleログインに失敗しました。もう一度お試しください。");
-      saveState.textContent="Googleログインエラー";
+      alert(`Googleログインに失敗しました。\n\nエラー: ${code}\n\n${message}`);
+      saveState.textContent=`ログインエラー: ${code}`;
     }
   }finally{
     btn.disabled=false;
