@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ブルアカ 石計画</title>
+<style>
+:root{
+  --bg:#f4f7fb; --panel:#fff; --line:#dfe6ef; --text:#1e293b; --muted:#64748b;
+  --accent:#2563eb; --danger:#dc2626; --warn:#d97706; --good:#15803d;
+  --perm:#dbeafe; --limited:#ede9fe; --anniv:#fef3c7; --free100:#dcfce7;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.header-inner{max-width:1400px;margin:auto;padding:14px 18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+h1{font-size:20px;margin:0}
+nav{display:flex;gap:8px;flex-wrap:wrap}
+.nav-btn{border:0;background:#eef2f7;padding:9px 14px;border-radius:10px}
+.nav-btn.active{background:#1e293b;color:white}
+.save-state{margin-left:auto;color:var(--muted);font-size:13px}
+main{max-width:1400px;margin:18px auto;padding:0 18px 42px}
+.page{display:none}.page.active{display:block}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(15,23,42,.04)}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.segment{display:inline-flex;background:#eef2f7;border-radius:12px;padding:4px}
+.segment button{border:0;background:transparent;padding:8px 14px;border-radius:9px}
+.segment button.active{background:#fff;box-shadow:0 1px 4px rgba(15,23,42,.14);font-weight:700}
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;margin-top:12px}
+.stat{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat .label{font-size:12px;color:var(--muted)} .stat .value{font-size:22px;font-weight:800;margin-top:4px}
+.plan-table-wrap,.report-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+table{border-collapse:collapse;width:100%;min-width:980px}
+th,td{border-bottom:1px solid var(--line);padding:11px 10px;text-align:left;vertical-align:top}
+th{background:#f8fafc;font-size:13px;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.month-cell{font-weight:700;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:700}
+.badge.plan{background:#e0f2fe;color:#075985}.badge.actual{background:#e2e8f0;color:#334155}.badge.current{background:#fef3c7;color:#92400e}
+.gacha-list{display:flex;gap:6px;flex-wrap:wrap}
+.gacha-chip{border-radius:9px;padding:6px 8px;font-size:12px;min-width:110px}
+.gacha-chip.permanent{background:var(--perm)} .gacha-chip.limited{background:var(--limited)}
+.gacha-chip.anniversary{background:var(--anniv)} .gacha-chip.free100{background:var(--free100)}
+.gacha-chip.done{opacity:.55;text-decoration:line-through}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.safety.negative{color:var(--danger);font-weight:800}.safety.low{color:var(--warn);font-weight:800}.safety.ok{color:var(--good);font-weight:800}
+.link-btn{border:0;background:transparent;color:var(--accent);padding:0}
+.ghost-add{
+  border:1px dashed #cbd5e1;
+  background:#f8fafc;
+  color:#94a3b8;
+  padding:6px 10px;
+  border-radius:9px;
+  font-size:12px;
+}
+.ghost-add:hover{background:#f1f5f9;color:#64748b;border-color:#94a3b8}
+.primary{border:0;background:#2563eb;color:white;padding:9px 13px;border-radius:10px}
+.secondary{border:1px solid var(--line);background:white;padding:9px 13px;border-radius:10px}
+.danger{border:1px solid #fecaca;background:#fff1f2;color:#b91c1c;padding:9px 13px;border-radius:10px}
+.month-editor{margin-top:14px;border-top:1px solid var(--line);padding-top:14px;display:none}
+.month-editor.open{display:block}
+.form-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:9px;background:white}
+textarea{min-height:68px;resize:vertical}
+.gacha-card{border:1px solid var(--line);border-left:7px solid #94a3b8;border-radius:12px;padding:12px;margin-top:10px}
+.gacha-card.permanent{border-left-color:#60a5fa}.gacha-card.limited{border-left-color:#8b5cf6}.gacha-card.anniversary{border-left-color:#f59e0b}.gacha-card.free100{border-left-color:#22c55e}
+.gacha-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto auto;gap:8px;align-items:end}
+.help{font-size:12px;color:var(--muted);line-height:1.6}
+.section-title{font-size:16px;margin:0 0 12px}
+.setting-row{display:grid;grid-template-columns:260px 180px 1fr;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid #eef2f7}
+.setting-row:last-child{border-bottom:0}
+.report-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.report-table th:first-child,.report-table td:first-child{position:sticky;left:0;background:#fff;z-index:2}
+.report-table th:first-child{background:#f8fafc}
+.actual-inputs{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px}
+.tx-list{margin-top:12px;border-top:1px solid var(--line)}
+.tx-item{display:grid;grid-template-columns:110px 110px 1fr 130px auto;gap:8px;padding:9px 0;border-bottom:1px solid #eef2f7;align-items:center}
+.note{color:var(--muted);font-size:13px}
+.small{font-size:12px}
+.spacer{flex:1}
+dialog{border:0;border-radius:16px;max-width:560px;width:calc(100% - 30px);padding:0;box-shadow:0 20px 60px rgba(15,23,42,.25)}
+dialog::backdrop{background:rgba(15,23,42,.35)}
+.dialog-body{padding:18px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}
+@media(max-width:800px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .form-grid,.actual-inputs{grid-template-columns:1fr 1fr}
+  .gacha-grid{grid-template-columns:1fr 1fr}
+  .gacha-grid .name-field{grid-column:1/-1}
+  .setting-row{grid-template-columns:1fr}
+  .save-state{margin-left:0;width:100%}
+  .desktop-only{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <h1>ブルアカ 石計画</h1>
+    <nav>
+      <button class="nav-btn active" data-page="plan">石計画</button>
+      <button class="nav-btn" data-page="report">収支報告</button>
+      <button class="nav-btn" data-page="settings">ルール設定</button>
+    </nav>
+    <div class="save-state" id="saveState">保存済み</div>
+  </div>
+</header>
+
+<main>
+<section class="page active" id="page-plan">
+  <div class="panel">
+    <div class="toolbar">
+      <div class="segment" id="modeSegment">
+        <button data-mode="average" class="active">平均想定</button>
+        <button data-mode="guaranteed">最低保証</button>
+      </div>
+      <button class="secondary" id="syncGuaranteedFromAverage" style="display:none">平均想定からガチャ予定を同期</button>
+      <div class="spacer"></div>
+      <button class="secondary" id="jumpCurrent">今月へ</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="label">計画開始残高</div><div class="value"><input id="baseBalance" type="number" min="0" step="1"></div></div>
+      <div class="stat"><div class="label">無課金想定月収</div><div class="value" id="statFreeIncome">14,000</div></div>
+      <div class="stat"><div class="label">サブスク想定月収</div><div class="value" id="statSubIncome">16,500</div></div>
+      <div class="stat"><div class="label">安全ライン</div><div class="value" id="statSafety">40,000</div></div>
+    </div>
+  </div>
+
+  <div class="plan-table-wrap">
+    <table>
+      <thead><tr>
+        <th>月</th><th>収入</th><th>ガチャ予定</th><th class="num">支出</th><th class="num">月末残高</th><th class="num">安全余力</th><th></th>
+      </tr></thead>
+      <tbody id="planBody"></tbody>
+    </table>
+  </div>
+  <div class="panel month-editor" id="monthEditor"></div>
+</section>
+
+<section class="page" id="page-report">
+  <div class="panel">
+    <div class="report-controls">
+      <button class="secondary" id="prevYear">←</button>
+      <strong id="reportYearLabel">2026年</strong>
+      <button class="secondary" id="nextYear">→</button>
+      <div class="spacer"></div>
+      <button class="primary" id="openTx">＋ 実績を記録</button>
+    </div>
+    <div class="report-wrap">
+      <table class="report-table">
+        <thead id="reportHead"></thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="section-title">月末確定</h2>
+    <div class="actual-inputs">
+      <div><label>対象月</label><select id="closingMonth"></select></div>
+      <div><label>期末残高</label><input id="closingBalance" type="number" min="0" placeholder="例 73957"></div>
+      <div><label>サブスク</label><select id="closingSub"><option value="auto">計画と同じ</option><option value="yes">あり</option><option value="no">なし</option></select></div>
+      <div><label>月途中加入など</label><input id="closingDaysOverride" type="number" min="0" max="31" placeholder="空欄=その月の日数"></div>
+    </div>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="primary" id="finalizeMonth">この月を確定</button>
+      <button class="secondary" id="unfinalizeMonth">確定を解除</button>
+      <span class="help">課金石収入 = 日数 × 60 + 592（サブスクありの場合）。無料石収入は期末残高から逆算します。</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="section-title">実績ログ</h2>
+    <div id="txList" class="tx-list"></div>
+  </div>
+</section>
+
+<section class="page" id="page-settings">
+  <div class="panel">
+    <h2 class="section-title">収入設定</h2>
+    <div class="setting-row"><div>無課金想定月収</div><input id="setFreeIncome" type="number"><div class="help">計画表で「無課金」を選んだ月に使います。</div></div>
+    <div class="setting-row"><div>サブスク想定月収</div><input id="setSubIncome" type="number"><div class="help">計画表で「サブスク」を選んだ月の総収入想定です。</div></div>
+  </div>
+  <div class="panel">
+    <h2 class="section-title">ガチャ設定</h2>
+    <div class="setting-row"><div>通常 1PU 平均想定</div><input id="setNormalAvg" type="number"><div class="help">恒常・限定・周年で共通。</div></div>
+    <div class="setting-row"><div>通常 1PU 最低保証</div><input id="setNormalGuaranteed" type="number"><div class="help">1天井最大 19,200石。</div></div>
+    <div class="setting-row"><div>無料100連 1PU 平均想定</div><input id="setFree100One" type="number"><div></div></div>
+    <div class="setting-row"><div>無料100連 2PU 平均想定</div><input id="setFree100Two" type="number"><div></div></div>
+    <div class="setting-row"><div>無料100連 1PU 最低保証</div><input id="setFree100GuaranteedOne" type="number"><div class="help">初期値は無料100連後に残り100連で天井する 9,600石。</div></div>
+    <div class="setting-row"><div>無料100連 2PU 最低保証</div><input id="setFree100GuaranteedTwo" type="number"><div class="help">初期値は 9,600 + 19,200 = 28,800石。必要なら変更できます。</div></div>
+  </div>
+  <div class="panel">
+    <h2 class="section-title">安全資金</h2>
+    <div class="setting-row"><div>下振れ保険</div><input id="setDownside" type="number"><div></div></div>
+    <div class="setting-row"><div>余力</div><input id="setExtra" type="number"><div></div></div>
+    <div class="setting-row"><div>安全ライン</div><strong id="settingSafetyLine"></strong><div class="help">下振れ保険 + 余力</div></div>
+  </div>
+  <div class="panel">
+    <h2 class="section-title">データ管理</h2>
+    <div class="toolbar">
+      <button class="secondary" id="exportJson">JSONを書き出す</button>
+      <label class="secondary" style="cursor:pointer">JSONを読み込む<input id="importJson" type="file" accept=".json,application/json" style="display:none"></label>
+      <button class="danger" id="resetData">全データ削除</button>
+    </div>
+    <p class="help">変更はこのブラウザの localStorage に自動保存されます。定期的にJSONを書き出しておくと安全です。</p>
+  </div>
+</section>
+</main>
+
+<dialog id="txDialog">
+  <div class="dialog-body">
+    <h2 class="section-title">実績を記録</h2>
+    <div class="form-grid">
+      <div><label>日付</label><input id="txDate" type="date"></div>
+      <div><label>種類</label><select id="txType"><option value="gacha">ガチャ支出</option><option value="refresh">石割り支出</option><option value="ticket">チケット使用</option></select></div>
+      <div><label>数量</label><input id="txAmount" type="number" min="0"></div>
+      <div><label>メモ</label><input id="txNote" type="text"></div>
+    </div>
+  </div>
+  <div class="dialog-actions">
+    <button class="secondary" id="cancelTx">キャンセル</button>
+    <button class="primary" id="saveTx">保存</button>
+  </div>
+</dialog>
+
+<script>
+const STORAGE_KEY = "bluearchive_stone_plan_v1";
+const now = new Date();
+const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+const PLAN_START_MONTH = "2026-10";
+
+const defaults = {
+  version:1,
+  baseBalance: 0,
+  settings:{
+    freeMonthlyIncome:14000,
+    subMonthlyIncome:16500,
+    normalAvg:10000,
+    normalGuaranteed:19200,
+    free100AvgOne:1000,
+    free100AvgTwo:7000,
+    free100GuaranteedOne:9600,
+    free100GuaranteedTwo:28800,
+    downsideReserve:20000,
+    extraReserve:20000
+  },
+  months:{},
+  plans:{average:{},guaranteed:{}},
+  transactions:[],
+  closings:{}
+};
+
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function loadData(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return clone(defaults);
+    const d=JSON.parse(raw);
+    return {
+      ...clone(defaults), ...d,
+      settings:{...clone(defaults.settings), ...(d.settings||{})},
+      months:d.months||{}, plans:{average:d.plans?.average||{}, guaranteed:d.plans?.guaranteed||{}},
+      transactions:d.transactions||[], closings:d.closings||{}
+    };
+  }catch(e){return clone(defaults)}
+}
+let data=loadData();
+let activeMode="average";
+let activePage="plan";
+let reportYear=now.getFullYear();
+let editingMonth=null;
+
+function save(){
+  document.getElementById("saveState").textContent="保存中…";
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+  setTimeout(()=>document.getElementById("saveState").textContent="保存済み",150);
+}
+function yen(n){ return Math.round(Number(n||0)).toLocaleString("ja-JP"); }
+function monthDays(key){ const [y,m]=key.split("-").map(Number); return new Date(y,m,0).getDate(); }
+function addMonths(key,delta){ const [y,m]=key.split("-").map(Number); const d=new Date(y,m-1+delta,1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;}
+function monthLabel(key){ const [y,m]=key.split("-"); return `${Number(m)}月`; }
+function fullMonthLabel(key){ const [y,m]=key.split("-"); return `${y}年${Number(m)}月`; }
+function reportMonthsForYear(year){
+  const startMonth = year === 2026 ? 10 : 1;
+  if(year < 2026) return [];
+  return Array.from({length: 13-startMonth},(_,i)=>`${year}-${String(startMonth+i).padStart(2,"0")}`);
+}
+function monthType(key){
+  const c=data.closings[key];
+  if(c?.finalized) return "actual";
+  if(key===currentMonthKey) return "current";
+  return "plan";
+}
+function ensureMonth(key){
+  if(!data.months[key]) data.months[key]={incomeType:"subscription", incomeAdjustment:0};
+  if(!data.plans.average[key]) data.plans.average[key]={gachas:[],memo:""};
+  if(!data.plans.guaranteed[key]) data.plans.guaranteed[key]={gachas:[],memo:""};
+}
+function ensureInitialMonths(){
+  // 初期開始は2026年10月。以後は「当月〜7か月後」までを自動で用意する。
+  const start = currentMonthKey < PLAN_START_MONTH ? PLAN_START_MONTH : currentMonthKey;
+  for(let i=0;i<=7;i++) ensureMonth(addMonths(start,i));
+  // 2026年10月より前は使わない
+  Object.keys(data.months).forEach(k=>{ if(k < PLAN_START_MONTH) delete data.months[k]; });
+  ["average","guaranteed"].forEach(mode=>{
+    Object.keys(data.plans[mode]||{}).forEach(k=>{ if(k < PLAN_START_MONTH) delete data.plans[mode][k]; });
+  });
+  Object.keys(data.closings||{}).forEach(k=>{ if(k < PLAN_START_MONTH) delete data.closings[k]; });
+  data.transactions = (data.transactions||[]).filter(t => !t.date || t.date.slice(0,7) >= PLAN_START_MONTH);
+}
+ensureInitialMonths();
+
+function sortedMonths(){ return Object.keys(data.months).sort(); }
+function visiblePlanMonths(){
+  const start = currentMonthKey < PLAN_START_MONTH ? PLAN_START_MONTH : currentMonthKey;
+  const end = addMonths(start,7);
+  return sortedMonths().filter(k=>k>=start && k<=end);
+}
+function getMonthlyIncome(key){
+  ensureMonth(key);
+  const m=data.months[key];
+  const base=m.incomeType==="free"?data.settings.freeMonthlyIncome:data.settings.subMonthlyIncome;
+  return Number(base)+Number(m.incomeAdjustment||0);
+}
+function paidIncomeForMonth(key){
+  ensureMonth(key);
+  const c=data.closings[key]||{};
+  let hasSub;
+  if(c.subscription==="yes") hasSub=true;
+  else if(c.subscription==="no") hasSub=false;
+  else hasSub=data.months[key].incomeType==="subscription";
+  if(!hasSub) return 0;
+  const days=(c.daysOverride!==undefined && c.daysOverride!==null && c.daysOverride!=="")?Number(c.daysOverride):monthDays(key);
+  return days*60+592;
+}
+function txForMonth(key){ return data.transactions.filter(t=>t.date?.startsWith(key)); }
+function txSum(key,type){ return txForMonth(key).filter(t=>t.type===type).reduce((s,t)=>s+Number(t.amount||0),0); }
+function stoneSpend(key){ return txSum(key,"gacha")+txSum(key,"refresh"); }
+function actualReport(key){
+  const c=data.closings[key]||{};
+  const opening=getOpeningBalance(key);
+  const paid=paidIncomeForMonth(key);
+  const spend=stoneSpend(key);
+  const closing=(c.closingBalance!==undefined && c.closingBalance!==null && c.closingBalance!=="")?Number(c.closingBalance):null;
+  const totalIncome=closing===null?null:(closing-opening+spend);
+  const freeIncome=totalIncome===null?null:(totalIncome-paid);
+  return {opening,paid,spend,closing,totalIncome,freeIncome,gacha:txSum(key,"gacha"),refresh:txSum(key,"refresh"),ticket:txSum(key,"ticket")};
+}
+function getOpeningBalance(key){
+  const prev=addMonths(key,-1);
+  if(data.closings[prev]?.finalized && data.closings[prev].closingBalance!==undefined) return Number(data.closings[prev].closingBalance);
+  const months=sortedMonths();
+  if(months[0]===key) return Number(data.baseBalance||0);
+  const idx=months.indexOf(key);
+  if(idx>0){
+    const prevCalc=calculatePlanRows()[idx-1];
+    if(prevCalc) return Number(prevCalc.closing||0);
+  }
+  return Number(data.baseBalance||0);
+}
+function gachaCost(g,mode){
+  const choice = String(g.choice ?? g.pickupCount ?? 1);
+
+  // 募集回数特典の無料10連チケットを取得次第すぐ使う前提。
+  // 180回募集到達には石140連分、380回募集到達には石300連分で足りる。
+  // 1連 = 96石。
+  if(choice==="180pull") return 140*96;
+  if(choice==="380pull") return 300*96;
+
+  const n = Number(choice||1);
+  if(g.category==="free100"){
+    if(mode==="average") return n===1?data.settings.free100AvgOne:data.settings.free100AvgTwo;
+    return n===1?data.settings.free100GuaranteedOne:data.settings.free100GuaranteedTwo;
+  }
+  return n * (mode==="average"?data.settings.normalAvg:data.settings.normalGuaranteed);
+}
+function planSpend(key,mode){
+  ensureMonth(key);
+  return data.plans[mode][key].gachas.filter(g=>!g.done).reduce((s,g)=>s+gachaCost(g,mode),0);
+}
+function calculatePlanRows(){
+  let balance=Number(data.baseBalance||0);
+  const out=[];
+  for(const key of sortedMonths()){
+    ensureMonth(key);
+    const type=monthType(key);
+    let income, spend, closing;
+    if(type==="actual"){
+      const r=actualReport(key);
+      income=Number(r.totalIncome||0); spend=Number(r.spend||0); closing=Number(r.closing||0);
+      balance=closing;
+    }else{
+      const opening=balance;
+      income=getMonthlyIncome(key);
+      const actualSpend = key===currentMonthKey ? stoneSpend(key) : 0;
+      const remainingPlan=planSpend(key,activeMode);
+      spend=actualSpend+remainingPlan;
+      closing=opening+income-spend;
+      balance=closing;
+    }
+    out.push({key,type,income,spend,closing,safety:closing-(data.settings.downsideReserve+data.settings.extraReserve)});
+  }
+  return out;
+}
+
+function renderPlan(){
+  const body=document.getElementById("planBody");
+  body.innerHTML="";
+  const visibleKeys = new Set(visiblePlanMonths());
+  const rows=calculatePlanRows().filter(r=>visibleKeys.has(r.key));
+  for(const r of rows){
+    const p=data.plans[activeMode][r.key];
+    const tr=document.createElement("tr");
+    const badge = r.type==="actual" ? '<span class="badge actual">実績</span>' : r.type==="current" ? '<span class="badge current">今月</span>' : '<span class="badge plan">計画</span>';
+    const ghtml = r.type==="actual"
+      ? `<span class="note">ガチャ実績 ${yen(txSum(r.key,"gacha"))}石</span>`
+      : `<div class="gacha-list">${p.gachas.length?p.gachas.map(g=>`<div class="gacha-chip ${g.category} ${g.done?"done":""}"><strong>${escapeHtml((g.name||"").trim() || categoryName(g.category))}</strong><br>${categoryName(g.category)} / ${gachaChoice(g)}</div>`).join(""):`<button class="ghost-add quick-add-gacha" data-month="${r.key}">＋ ガチャ予定を追加</button>`}</div>`;
+    const safetyClass=r.safety<0?"negative":r.safety<10000?"low":"ok";
+    const incomeText = r.type==="actual" ? yen(r.income) : `${data.months[r.key].incomeType==="free"?"無課金":"サブスク"} ${yen(r.income)}`;
+    tr.innerHTML=`
+      <td class="month-cell">${fullMonthLabel(r.key)}<br>${badge}</td>
+      <td>${incomeText}</td>
+      <td>${ghtml}</td>
+      <td class="num">${yen(r.spend)}</td>
+      <td class="num"><strong>${yen(r.closing)}</strong></td>
+      <td class="num safety ${safetyClass}">${r.safety>=0?"+":""}${yen(r.safety)}</td>
+      <td><button class="link-btn edit-month" data-month="${r.key}">${r.type==="actual"?"詳細":"編集"}</button></td>`;
+    body.appendChild(tr);
+  }
+  document.getElementById("baseBalance").value=data.baseBalance;
+  document.getElementById("statFreeIncome").textContent=yen(data.settings.freeMonthlyIncome);
+  document.getElementById("statSubIncome").textContent=yen(data.settings.subMonthlyIncome);
+  document.getElementById("statSafety").textContent=yen(data.settings.downsideReserve+data.settings.extraReserve);
+  document.querySelectorAll(".edit-month").forEach(b=>b.onclick=()=>openMonthEditor(b.dataset.month));
+  document.querySelectorAll(".quick-add-gacha").forEach(b=>b.onclick=(e)=>{
+    e.stopPropagation();
+    const key=b.dataset.month;
+    ensureMonth(key);
+    const p=data.plans[activeMode][key];
+    p.gachas.push({id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:"",category:"limited",choice:"1",pickupCount:1,done:false});
+    save();
+    renderPlan();
+    openMonthEditor(key);
+  });
+}
+
+function categoryName(c){return ({permanent:"恒常",limited:"限定",anniversary:"周年",free100:"無料100連"})[c]||c}
+function categoryMax(c){return c==="anniversary"?4:2}
+function gachaChoice(g){
+  const v = String(g.choice ?? g.pickupCount ?? 1);
+  if(v==="180pull") return "180連";
+  if(v==="380pull") return "380連";
+  return `${Number(v)}PU`;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+
+function openMonthEditor(key){
+  editingMonth=key; ensureMonth(key);
+  const box=document.getElementById("monthEditor");
+  box.classList.add("open");
+  if(monthType(key)==="actual"){
+    const r=actualReport(key);
+    box.innerHTML=`<div class="toolbar"><h2 class="section-title">${fullMonthLabel(key)} 実績</h2><div class="spacer"></div><button class="secondary" id="closeEditor">閉じる</button></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="label">期首残高</div><div class="value">${yen(r.opening)}</div></div>
+        <div class="stat"><div class="label">石収入合計</div><div class="value">${yen(r.totalIncome)}</div></div>
+        <div class="stat"><div class="label">石支出合計</div><div class="value">${yen(r.spend)}</div></div>
+        <div class="stat"><div class="label">期末残高</div><div class="value">${yen(r.closing)}</div></div>
+      </div>`;
+    document.getElementById("closeEditor").onclick=()=>box.classList.remove("open");
+    box.scrollIntoView({behavior:"smooth",block:"nearest"});
+    return;
+  }
+  const m=data.months[key], p=data.plans[activeMode][key];
+  box.innerHTML=`<div class="toolbar"><h2 class="section-title">${fullMonthLabel(key)} — ${activeMode==="average"?"平均想定":"最低保証"}</h2><div class="spacer"></div><button class="secondary" id="closeEditor">閉じる</button></div>
+    <div class="form-grid">
+      <div><label>収入タイプ（両モード共通）</label><select id="editIncomeType"><option value="free">無課金</option><option value="subscription">サブスク</option></select></div>
+      <div><label>収入補正</label><input id="editIncomeAdj" type="number" value="${m.incomeAdjustment||0}"></div>
+      <div style="grid-column:span 2"><label>メモ（このモードのみ）</label><input id="editMemo" value="${escapeHtml(p.memo||"")}"></div>
+    </div>
+    <div id="gachaEditor"></div>
+    <div class="toolbar" style="margin-top:10px"><button class="secondary" id="addGacha">＋ ガチャ予定を追加</button><span class="help">基本2枠。必要なときだけ3枠目以降を追加できます。</span></div>`;
+  document.getElementById("editIncomeType").value=m.incomeType;
+  document.getElementById("editIncomeType").onchange=e=>{m.incomeType=e.target.value;save();renderAll()};
+  document.getElementById("editIncomeAdj").onchange=e=>{m.incomeAdjustment=Number(e.target.value||0);save();renderAll()};
+  document.getElementById("editMemo").onchange=e=>{p.memo=e.target.value;save()};
+  document.getElementById("closeEditor").onclick=()=>box.classList.remove("open");
+  document.getElementById("addGacha").onclick=()=>{p.gachas.push({id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:"",category:"limited",choice:"1",pickupCount:1,done:false});save();renderGachaEditor()};
+  renderGachaEditor();
+  box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function renderGachaEditor(){
+  const key=editingMonth; if(!key)return;
+  const p=data.plans[activeMode][key];
+  const root=document.getElementById("gachaEditor"); if(!root)return;
+  if(p.gachas.length===0){
+    root.innerHTML=`<div style="padding:12px 0"><button class="ghost-add" id="emptyAddGacha">＋ ガチャ予定を追加</button></div>`;
+    document.getElementById("emptyAddGacha").onclick=()=>{
+      p.gachas.push({id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:"",category:"limited",choice:"1",pickupCount:1,done:false});
+      save(); renderGachaEditor(); renderPlan();
+    };
+    return;
+  }
+  root.innerHTML=p.gachas.map((g,i)=>`
+    <div class="gacha-card ${g.category}" data-id="${g.id}">
+      <div class="gacha-grid">
+        <div class="name-field"><label>ガチャ名</label><input class="g-name" value="${escapeHtml(g.name||"")}" placeholder="${categoryName(g.category)}"></div>
+        <div><label>ジャンル</label><select class="g-cat">
+          <option value="permanent">恒常</option><option value="limited">限定</option><option value="anniversary">周年</option><option value="free100">無料100連</option>
+        </select></div>
+        <div><label>PU / 連数</label><select class="g-pu"></select></div>
+        <label style="display:flex;gap:6px;align-items:center;margin:0 0 9px;color:var(--text)"><input class="g-done" type="checkbox" style="width:auto" ${g.done?"checked":""}>実行済み</label>
+        <button class="danger g-del">削除</button>
+      </div>
+      <div class="help">このモードでの計画コスト：<strong>${yen(gachaCost(g,activeMode))}石</strong></div>
+    </div>`).join("");
+  root.querySelectorAll(".gacha-card").forEach(card=>{
+    const g=p.gachas.find(x=>x.id===card.dataset.id);
+    const cat=card.querySelector(".g-cat"); cat.value=g.category;
+    const pu=card.querySelector(".g-pu");
+    const refreshPU=()=>{
+      pu.innerHTML="";
+      const current = String(g.choice ?? g.pickupCount ?? 1);
+
+      const addOpt=(value,label)=>{
+        const o=document.createElement("option");
+        o.value=String(value); o.textContent=label; pu.appendChild(o);
+      };
+
+      if(g.category==="free100"){
+        addOpt("1","1PU");
+        addOpt("2","2PU");
+        if(current!=="1" && current!=="2") g.choice="1";
+      }else{
+        const max=categoryMax(g.category);
+        for(let n=1;n<=max;n++) addOpt(String(n),`${n}PU`);
+        addOpt("180pull","180連");
+        addOpt("380pull","380連");
+        const valid=[...Array(max)].map((_,i)=>String(i+1)).concat(["180pull","380pull"]);
+        if(!valid.includes(current)) g.choice="1";
+      }
+
+      pu.value=String(g.choice ?? g.pickupCount ?? 1);
+    };
+    refreshPU();
+    card.querySelector(".g-name").onchange=e=>{g.name=e.target.value;save();renderPlan()};
+    cat.onchange=e=>{
+      g.category=e.target.value;
+      if(g.category==="free100" && !["1","2"].includes(String(g.choice ?? g.pickupCount ?? 1))){
+        g.choice="1";
+        g.pickupCount=1;
+      }
+      refreshPU(); save(); openMonthEditor(key);
+    };
+    pu.onchange=e=>{
+      g.choice=e.target.value;
+      if(e.target.value==="180pull" || e.target.value==="380pull"){
+        g.pickupCount=null;
+      }else{
+        g.pickupCount=Number(e.target.value);
+      }
+      save(); openMonthEditor(key); renderPlan();
+    };
+    card.querySelector(".g-done").onchange=e=>{g.done=e.target.checked;save();renderAll();openMonthEditor(key)};
+    card.querySelector(".g-del").onclick=()=>{p.gachas=p.gachas.filter(x=>x.id!==g.id);save();renderAll();openMonthEditor(key)};
+  });
+}
+
+function renderReport(){
+  const months=reportMonthsForYear(reportYear);
+  document.getElementById("reportYearLabel").textContent=`${reportYear}年`;
+  document.getElementById("prevYear").disabled = reportYear<=2026;
+  document.getElementById("reportHead").innerHTML=`<tr><th>項目</th>${months.map(m=>`<th>${Number(m.slice(5))}月</th>`).join("")}<th>合計</th><th>平均</th></tr>`;
+  const defs=[
+    ["期首残高","opening",false],["無料石収入","freeIncome",true],["課金石収入","paid",true],["石収入合計","totalIncome",true],
+    ["ガチャ支出","gacha",true],["チケット使用","ticket",true],["石割り支出","refresh",true],["石支出合計","spend",true],["期末残高","closing",false]
+  ];
+  const reports=months.map(m=>actualReport(m));
+  const body=document.getElementById("reportBody"); body.innerHTML="";
+  defs.forEach(([label,key,aggregate])=>{
+    const vals=reports.map(r=>r[key]);
+    const known=vals.filter(v=>v!==null&&v!==undefined);
+    const sum=known.reduce((s,v)=>s+Number(v||0),0);
+    const avg=known.length?sum/known.length:0;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td><strong>${label}</strong></td>${vals.map(v=>`<td class="num">${v===null||v===undefined?"—":yen(v)}</td>`).join("")}
+      <td class="num">${aggregate?yen(sum):"—"}</td><td class="num">${aggregate&&known.length?yen(avg):"—"}</td>`;
+    body.appendChild(tr);
+  });
+  const cm=document.getElementById("closingMonth");
+  const prev=cm.value;
+  cm.innerHTML=months.map(m=>`<option value="${m}">${fullMonthLabel(m)}</option>`).join("");
+  if(months.length){
+    cm.value=months.includes(prev)?prev:(months.includes(currentMonthKey)?currentMonthKey:months[0]);
+    loadClosingForm(cm.value);
+    cm.onchange=()=>loadClosingForm(cm.value);
+  }
+  renderTransactions();
+}
+function loadClosingForm(key){
+  if(!key || key < PLAN_START_MONTH) return;
+  ensureMonth(key); const c=data.closings[key]||{};
+  document.getElementById("closingBalance").value=c.closingBalance??"";
+  document.getElementById("closingSub").value=c.subscription||"auto";
+  document.getElementById("closingDaysOverride").value=c.daysOverride??"";
+}
+function renderTransactions(){
+  const root=document.getElementById("txList");
+  const tx=[...data.transactions].sort((a,b)=>b.date.localeCompare(a.date));
+  root.innerHTML=tx.length?tx.map(t=>`<div class="tx-item">
+    <div>${t.date}</div><div>${({gacha:"ガチャ",refresh:"石割り",ticket:"チケット"})[t.type]}</div><div>${escapeHtml(t.note||"")}</div><div class="num">${yen(t.amount)}</div><button class="link-btn tx-del" data-id="${t.id}">削除</button>
+  </div>`).join(""):'<div class="note" style="padding:12px 0">まだ実績ログはありません。</div>';
+  root.querySelectorAll(".tx-del").forEach(b=>b.onclick=()=>{data.transactions=data.transactions.filter(t=>t.id!==b.dataset.id);save();renderAll()});
+}
+
+function renderSettings(){
+  const s=data.settings;
+  [["setFreeIncome","freeMonthlyIncome"],["setSubIncome","subMonthlyIncome"],["setNormalAvg","normalAvg"],["setNormalGuaranteed","normalGuaranteed"],
+   ["setFree100One","free100AvgOne"],["setFree100Two","free100AvgTwo"],["setFree100GuaranteedOne","free100GuaranteedOne"],["setFree100GuaranteedTwo","free100GuaranteedTwo"],
+   ["setDownside","downsideReserve"],["setExtra","extraReserve"]].forEach(([id,key])=>{
+    const el=document.getElementById(id); el.value=s[key]; el.onchange=e=>{s[key]=Number(e.target.value||0);save();renderAll()};
+  });
+  document.getElementById("settingSafetyLine").textContent=yen(s.downsideReserve+s.extraReserve)+"石";
+}
+function renderAll(){renderPlan();renderReport();renderSettings()}
+
+document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>{
+  activePage=b.dataset.page;
+  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x===b));
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.getElementById(`page-${activePage}`).classList.add("active");
+});
+document.querySelectorAll("#modeSegment button").forEach(b=>b.onclick=()=>{
+  activeMode=b.dataset.mode;
+  document.querySelectorAll("#modeSegment button").forEach(x=>x.classList.toggle("active",x===b));
+  const syncBtn=document.getElementById("syncGuaranteedFromAverage");
+  if(syncBtn) syncBtn.style.display=activeMode==="guaranteed"?"inline-block":"none";
+  document.getElementById("monthEditor").classList.remove("open");
+  renderPlan();
+});
+document.getElementById("syncGuaranteedFromAverage").onclick=()=>{
+  const hasGuaranteedPlans = Object.values(data.plans.guaranteed||{}).some(p => (p.gachas||[]).length>0 || (p.memo||"").trim());
+  const message = hasGuaranteedPlans
+    ? "最低保証モードの現在のガチャ予定を、平均想定モードの内容で上書きします。よろしいですか？"
+    : "平均想定モードのガチャ予定を最低保証モードへコピーします。よろしいですか？";
+  if(!confirm(message)) return;
+
+  const copied = {};
+  for(const [month, plan] of Object.entries(data.plans.average||{})){
+    copied[month] = {
+      memo: plan.memo || "",
+      gachas: (plan.gachas||[]).map(g=>({
+        ...g,
+        id: crypto.randomUUID?.() || String(Date.now()+Math.random())
+      }))
+    };
+  }
+
+  // Keep guaranteed months that have no counterpart in average, but clear them only if they are in visible planning range?
+  // User asked to sync schedules; safest is full overwrite of guaranteed schedules with average schedules.
+  data.plans.guaranteed = copied;
+
+  // Ensure all month keys exist in both stores.
+  for(const m of Object.keys(data.months||{})){
+    if(!data.plans.guaranteed[m]) data.plans.guaranteed[m]={gachas:[],memo:""};
+  }
+
+  save();
+  document.getElementById("monthEditor").classList.remove("open");
+  renderAll();
+};
+document.getElementById("baseBalance").onchange=e=>{data.baseBalance=Number(e.target.value||0);save();renderAll()};
+document.getElementById("jumpCurrent").onclick=()=>{document.querySelector(`[data-month="${currentMonthKey}"]`)?.scrollIntoView({behavior:"smooth",block:"center"})};
+document.getElementById("prevYear").onclick=()=>{if(reportYear>2026){reportYear--;renderReport()}};
+document.getElementById("nextYear").onclick=()=>{reportYear++;renderReport()};
+
+const dlg=document.getElementById("txDialog");
+document.getElementById("openTx").onclick=()=>{document.getElementById("txDate").value=new Date().toISOString().slice(0,10);document.getElementById("txAmount").value="";document.getElementById("txNote").value="";dlg.showModal()};
+document.getElementById("cancelTx").onclick=()=>dlg.close();
+document.getElementById("saveTx").onclick=()=>{
+  const date=document.getElementById("txDate").value, amount=Number(document.getElementById("txAmount").value||0);
+  if(!date||amount<0)return alert("日付と数量を確認してください。");
+  if(date.slice(0,7) < PLAN_START_MONTH) return alert("実績記録は2026年10月からです。");
+  data.transactions.push({id:crypto.randomUUID?.()||String(Date.now()+Math.random()),date,type:document.getElementById("txType").value,amount,note:document.getElementById("txNote").value});
+  ensureMonth(date.slice(0,7)); save(); dlg.close(); renderAll();
+};
+document.getElementById("finalizeMonth").onclick=()=>{
+  const key=document.getElementById("closingMonth").value;
+  if(!key || key < PLAN_START_MONTH) return alert("収支記録は2026年10月からです。");
+  const v=document.getElementById("closingBalance").value;
+  if(v==="")return alert("期末残高を入力してください。");
+  data.closings[key]={...(data.closings[key]||{}),closingBalance:Number(v),subscription:document.getElementById("closingSub").value,daysOverride:document.getElementById("closingDaysOverride").value===""?null:Number(document.getElementById("closingDaysOverride").value),finalized:true};
+  ensureMonth(addMonths(key,1)); save(); renderAll();
+};
+document.getElementById("unfinalizeMonth").onclick=()=>{
+  const key=document.getElementById("closingMonth").value;
+  if(!key || key < PLAN_START_MONTH) return;
+  if(data.closings[key])data.closings[key].finalized=false;
+  save();renderAll();
+};
+
+document.getElementById("exportJson").onclick=()=>{
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`bluearchive-stone-plan-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href);
+};
+document.getElementById("importJson").onchange=async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  try{ const d=JSON.parse(await f.text()); if(!confirm("現在のデータを読み込んだJSONで置き換えます。よろしいですか？"))return; data={...clone(defaults),...d,settings:{...clone(defaults.settings),...(d.settings||{})},months:d.months||{},plans:{average:d.plans?.average||{},guaranteed:d.plans?.guaranteed||{}},transactions:d.transactions||[],closings:d.closings||{}};save();renderAll(); }
+  catch(err){alert("JSONを読み込めませんでした。")}
+  e.target.value="";
+};
+document.getElementById("resetData").onclick=()=>{
+  if(!confirm("石計画・実績・設定をすべて削除します。元に戻せません。よろしいですか？"))return;
+  data=clone(defaults);ensureInitialMonths();save();renderAll();
+};
+
+renderAll();
+const initialSyncBtn=document.getElementById("syncGuaranteedFromAverage");
+if(initialSyncBtn) initialSyncBtn.style.display=activeMode==="guaranteed"?"inline-block":"none";
+</script>
+</body>
+</html>
