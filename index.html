@@ -25,6 +25,25 @@ main{max-width:1400px;margin:22px auto;padding:0 24px 56px}
 .page{display:none}.page.active{display:block}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 2px 10px rgba(15,23,42,.05)}
 .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.mode-bar{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 0 10px;
+  padding:0 2px;
+}
+.mode-label{
+  font-size:11px;
+  color:var(--muted);
+  margin:0 0 5px 4px;
+  font-weight:600;
+  letter-spacing:.02em;
+}
+.mode-sync{
+  margin-bottom:1px;
+  white-space:nowrap;
+}
 .segment{display:inline-flex;background:#eef2f7;border-radius:12px;padding:4px}
 .segment button{border:0;background:transparent;padding:8px 14px;border-radius:9px}
 .segment button.active{background:#fff;box-shadow:0 1px 4px rgba(15,23,42,.14);font-weight:700}
@@ -83,7 +102,7 @@ textarea{min-height:68px;resize:vertical}
 .report-table th:first-child{background:#f8fafc}
 .actual-inputs{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px}
 .tx-list{margin-top:12px;border-top:1px solid var(--line)}
-.tx-item{display:grid;grid-template-columns:110px 110px 1fr 130px auto;gap:10px;padding:12px 0;border-bottom:1px solid #eef2f7;align-items:center}
+.tx-item{display:grid;grid-template-columns:130px 120px 1fr 110px auto;gap:10px;padding:12px 0;border-bottom:1px solid #eef2f7;align-items:center}
 .note{color:var(--muted);font-size:13px}
 .small{font-size:12px}
 .spacer{flex:1}
@@ -191,14 +210,8 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
       </div>
       <button class="secondary" id="syncGuaranteedFromAverage" style="display:none">平均想定からガチャ予定を同期</button>
       <div class="spacer"></div>
-      <button class="secondary" id="jumpCurrent">今月へ</button>
     </div>
-    <div class="stat-grid">
-      <div class="stat"><div class="label">計画開始残高</div><div class="value"><input id="baseBalance" type="number" min="0" step="1"></div></div>
-      <div class="stat"><div class="label">無課金想定月収</div><div class="value" id="statFreeIncome">14,000</div></div>
-      <div class="stat"><div class="label">サブスク想定月収</div><div class="value" id="statSubIncome">16,500</div></div>
-      <div class="stat"><div class="label">安全ライン</div><div class="value" id="statSafety">40,000</div></div>
-    </div>
+    
   </div>
 
   <div class="plan-table-wrap">
@@ -214,11 +227,14 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
 <section class="page" id="page-report">
   <div class="panel">
     <div class="report-controls">
-      <button class="secondary" id="prevYear">←</button>
-      <strong id="reportYearLabel">2026年</strong>
-      <button class="secondary" id="nextYear">→</button>
-      <div class="spacer"></div>
-      <button class="primary" id="openTx">＋ 実績を記録</button>
+      <div class="segment" id="reportRangeSegment">
+        <button data-range="3">直近3ヶ月</button>
+        <button data-range="6" class="active">直近6ヶ月</button>
+        <button data-range="12">直近12ヶ月</button>
+        <button data-range="all">全期間</button>
+        <button data-range="custom">特定期間</button>
+      </div>
+      <span class="help" id="reportRangeLabel"></span>
     </div>
     <div class="report-wrap">
       <table class="report-table">
@@ -244,13 +260,13 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
   </div>
 
   <div class="panel">
-    <h2 class="section-title">実績ログ</h2>
+    <h2 class="section-title">その他消費</h2>
     <div id="txList" class="tx-list"></div>
   </div>
 </section>
 
 <section class="page" id="page-settings">
-  <div class="panel">
+<div class="panel">
     <h2 class="section-title">収入設定</h2>
     <div class="setting-row"><div>無課金想定月収</div><input id="setFreeIncome" type="number"><div class="help">計画表で「無課金」を選んだ月に使います。</div></div>
     <div class="setting-row"><div>サブスク想定月収</div><input id="setSubIncome" type="number"><div class="help">計画表で「サブスク」を選んだ月の総収入想定です。</div></div>
@@ -271,6 +287,10 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
     <div class="setting-row"><div>安全ライン</div><strong id="settingSafetyLine"></strong><div class="help">下振れ保険 + 余力</div></div>
   </div>
   <div class="panel">
+    <h2 class="section-title">初期設定</h2>
+    <div class="setting-row"><div>2026年10月 期首残高</div><input id="setBaseBalance" type="number" min="0"><div class="help">最初の1回だけ使う基準値。10月確定後は通常触りません。</div></div>
+  </div>
+    <div class="panel">
     <h2 class="section-title">データ管理</h2>
     <div class="toolbar">
       <button class="secondary" id="exportJson">JSONを書き出す</button>
@@ -316,17 +336,32 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
 
 <dialog id="txDialog">
   <div class="dialog-body">
-    <h2 class="section-title">実績を記録</h2>
+    <h2 class="section-title" id="txDialogTitle">その他消費追加</h2>
     <div class="form-grid">
-      <div><label>日付</label><input id="txDate" type="date"></div>
-      <div><label>種類</label><select id="txType"><option value="gacha">ガチャ支出</option><option value="refresh">石割り支出</option><option value="ticket">チケット使用</option></select></div>
+      <div><label>種類</label><select id="txType"><option value="gacha">ガチャ支出</option><option value="refresh">石割り支出</option><option value="other">その他</option></select></div>
       <div><label>数量</label><input id="txAmount" type="number" min="0"></div>
-      <div><label>メモ</label><input id="txNote" type="text"></div>
+    </div>
+  </div>
+  <div id="txMonthDetails" style="display:none;padding:0 24px 18px"></div>
+  <div class="dialog-actions">
+    <button class="secondary" id="toggleTxDetails">明細</button>
+    <div class="spacer"></div>
+    <button class="secondary" id="cancelTx">キャンセル</button>
+    <button class="primary" id="saveTx">追加</button>
+  </div>
+</dialog>
+
+<dialog id="periodDialog">
+  <div class="dialog-body">
+    <h2 class="section-title">期間を選択</h2>
+    <div class="form-grid">
+      <div><label>開始月</label><select id="periodStart"></select></div>
+      <div><label>終了月</label><select id="periodEnd"></select></div>
     </div>
   </div>
   <div class="dialog-actions">
-    <button class="secondary" id="cancelTx">キャンセル</button>
-    <button class="primary" id="saveTx">保存</button>
+    <button class="secondary" id="cancelPeriod">キャンセル</button>
+    <button class="primary" id="applyPeriod">適用</button>
   </div>
 </dialog>
 
@@ -374,7 +409,10 @@ function loadData(){
 let data=loadData();
 let activeMode="average";
 let activePage="plan";
-let reportYear=now.getFullYear();
+let reportRange="6";
+let customReportStart=PLAN_START_MONTH;
+let customReportEnd=currentMonthKey;
+let txTargetMonth=currentMonthKey;
 let editingMonth=null;
 
 function save(){
@@ -440,9 +478,9 @@ function paidIncomeForMonth(key){
   const days=(c.daysOverride!==undefined && c.daysOverride!==null && c.daysOverride!=="")?Number(c.daysOverride):monthDays(key);
   return days*60+592;
 }
-function txForMonth(key){ return data.transactions.filter(t=>t.date?.startsWith(key)); }
+function txForMonth(key){ return data.transactions.filter(t=>(t.month||t.date?.slice(0,7))===key); }
 function txSum(key,type){ return txForMonth(key).filter(t=>t.type===type).reduce((s,t)=>s+Number(t.amount||0),0); }
-function stoneSpend(key){ return txSum(key,"gacha")+txSum(key,"refresh"); }
+function stoneSpend(key){ return txSum(key,"gacha")+txSum(key,"refresh")+txSum(key,"other"); }
 function actualReport(key){
   const c=data.closings[key]||{};
   const opening=getOpeningBalance(key);
@@ -451,7 +489,7 @@ function actualReport(key){
   const closing=(c.closingBalance!==undefined && c.closingBalance!==null && c.closingBalance!=="")?Number(c.closingBalance):null;
   const totalIncome=closing===null?null:(closing-opening+spend);
   const freeIncome=totalIncome===null?null:(totalIncome-paid);
-  return {opening,paid,spend,closing,totalIncome,freeIncome,gacha:txSum(key,"gacha"),refresh:txSum(key,"refresh"),ticket:txSum(key,"ticket")};
+  return {opening,paid,spend,closing,totalIncome,freeIncome,gacha:txSum(key,"gacha"),refresh:txSum(key,"refresh"),ticket:txSum(key,"ticket"),other:txSum(key,"other")};
 }
 function getOpeningBalance(key){
   const prev=addMonths(key,-1);
@@ -559,10 +597,6 @@ function renderPlan(){
       `;
     body.appendChild(tr);
   }
-  document.getElementById("baseBalance").value=data.baseBalance;
-  document.getElementById("statFreeIncome").textContent=yen(data.settings.freeMonthlyIncome);
-  document.getElementById("statSubIncome").textContent=yen(data.settings.subMonthlyIncome);
-  document.getElementById("statSafety").textContent=yen(data.settings.downsideReserve+data.settings.extraReserve);
   document.querySelectorAll(".quick-add-gacha").forEach(b=>b.onclick=(e)=>{
     e.stopPropagation();
     openGachaDialog(b.dataset.month, null);
@@ -708,14 +742,55 @@ function saveGachaFromDialog({keepOpen=false}={}){
 document.getElementById("saveGachaDialog").onclick=()=>saveGachaFromDialog({keepOpen:false});
 document.getElementById("saveAndAddAnotherGacha").onclick=()=>saveGachaFromDialog({keepOpen:true});
 
+
+function reportAvailableMonths(){
+  const out=[];
+  let m=PLAN_START_MONTH;
+  while(m<=currentMonthKey){
+    out.push(m);
+    m=addMonths(m,1);
+  }
+  return out;
+}
+function reportMonthsForRange(){
+  const all=reportAvailableMonths();
+  if(reportRange==="all") return all;
+  if(reportRange==="custom"){
+    return all.filter(m=>m>=customReportStart && m<=customReportEnd);
+  }
+  const n=Number(reportRange||6);
+  return all.slice(Math.max(0,all.length-n));
+}
+function shortReportMonthLabel(key){
+  const [y,m]=key.split("-");
+  return `${String(y).slice(2)}/${Number(m)}`;
+}
+function openTransactionDialog(month){
+  txTargetMonth=month;
+  document.getElementById("txDialogTitle").textContent=`${fullMonthLabel(month)} その他消費`;
+  document.getElementById("txAmount").value="";
+  renderTxMonthDetails();
+  document.getElementById("txMonthDetails").style.display="none";
+  document.getElementById("toggleTxDetails").textContent="明細";
+  dlg.showModal();
+}
+function refreshPeriodDialog(){
+  const all=reportAvailableMonths();
+  const opts=all.map(m=>`<option value="${m}">${fullMonthLabel(m)}</option>`).join("");
+  const s=document.getElementById("periodStart"), e=document.getElementById("periodEnd");
+  s.innerHTML=opts; e.innerHTML=opts;
+  s.value=all.includes(customReportStart)?customReportStart:all[0];
+  e.value=all.includes(customReportEnd)?customReportEnd:all[all.length-1];
+}
 function renderReport(){
-  const months=reportMonthsForYear(reportYear);
-  document.getElementById("reportYearLabel").textContent=`${reportYear}年`;
-  document.getElementById("prevYear").disabled = reportYear<=2026;
-  document.getElementById("reportHead").innerHTML=`<tr><th>項目</th>${months.map(m=>`<th>${Number(m.slice(5))}月</th>`).join("")}<th>合計</th><th>平均</th></tr>`;
+  const months=reportMonthsForRange();
+  const rangeLabel = months.length ? `${fullMonthLabel(months[0])}〜${fullMonthLabel(months[months.length-1])}` : "対象月なし";
+  document.getElementById("reportRangeLabel").textContent=rangeLabel;
+  document.querySelectorAll("#reportRangeSegment button").forEach(b=>b.classList.toggle("active",b.dataset.range===reportRange));
+  document.getElementById("reportHead").innerHTML=`<tr><th>項目</th>${months.map(m=>`<th><div style="display:flex;flex-direction:column;gap:4px;align-items:center"><span title="${fullMonthLabel(m)}">${shortReportMonthLabel(m)}</span><button class="ghost-add report-add-tx" data-month="${m}" style="padding:3px 6px;width:auto">＋</button></div></th>`).join("")}<th>合計</th><th>平均</th></tr>`;
   const defs=[
     ["期首残高","opening",false],["無料石収入","freeIncome",true],["課金石収入","paid",true],["石収入合計","totalIncome",true],
-    ["ガチャ支出","gacha",true],["チケット使用","ticket",true],["石割り支出","refresh",true],["石支出合計","spend",true],["期末残高","closing",false]
+    ["ガチャ支出","gacha",true],["石割り支出","refresh",true],["その他消費","other",true],["石支出合計","spend",true],["期末残高","closing",false]
   ];
   const reports=months.map(m=>actualReport(m));
   const body=document.getElementById("reportBody"); body.innerHTML="";
@@ -729,11 +804,14 @@ function renderReport(){
       <td class="num">${aggregate?yen(sum):"—"}</td><td class="num">${aggregate&&known.length?yen(avg):"—"}</td>`;
     body.appendChild(tr);
   });
+  document.querySelectorAll(".report-add-tx").forEach(b=>b.onclick=()=>openTransactionDialog(b.dataset.month));
+
   const cm=document.getElementById("closingMonth");
+  const closingMonths=reportAvailableMonths();
   const prev=cm.value;
-  cm.innerHTML=months.map(m=>`<option value="${m}">${fullMonthLabel(m)}</option>`).join("");
-  if(months.length){
-    cm.value=months.includes(prev)?prev:(months.includes(currentMonthKey)?currentMonthKey:months[0]);
+  cm.innerHTML=closingMonths.map(m=>`<option value="${m}">${fullMonthLabel(m)}</option>`).join("");
+  if(closingMonths.length){
+    cm.value=closingMonths.includes(prev)?prev:(closingMonths.includes(currentMonthKey)?currentMonthKey:closingMonths[closingMonths.length-1]);
     loadClosingForm(cm.value);
     cm.onchange=()=>loadClosingForm(cm.value);
   }
@@ -749,15 +827,20 @@ function loadClosingForm(key){
 }
 function renderTransactions(){
   const root=document.getElementById("txList");
-  const tx=[...data.transactions].sort((a,b)=>b.date.localeCompare(a.date));
+  const tx=[...data.transactions].filter(t=>t.type!=="ticket").sort((a,b)=>String(b.month||b.date||"").localeCompare(String(a.month||a.date||"")));
   root.innerHTML=tx.length?tx.map(t=>`<div class="tx-item">
-    <div>${t.date}</div><div>${({gacha:"ガチャ",refresh:"石割り",ticket:"チケット"})[t.type]}</div><div>${escapeHtml(t.note||"")}</div><div class="num">${yen(t.amount)}</div><button class="link-btn tx-del" data-id="${t.id}">削除</button>
-  </div>`).join(""):'<div class="note" style="padding:12px 0">まだ実績ログはありません。</div>';
+    <div>${fullMonthLabel(t.month||t.date?.slice(0,7)||PLAN_START_MONTH)}</div><div>${({gacha:"ガチャ",refresh:"石割り",other:"その他"})[t.type]||t.type}</div><div></div><div class="num">${yen(t.amount)}</div><button class="link-btn tx-del" data-id="${t.id}">削除</button>
+  </div>`).join(""):'<div class="note" style="padding:12px 0">まだ明細はありません。</div>';
   root.querySelectorAll(".tx-del").forEach(b=>b.onclick=()=>{data.transactions=data.transactions.filter(t=>t.id!==b.dataset.id);save();renderAll()});
 }
 
 function renderSettings(){
   const s=data.settings;
+  const baseEl=document.getElementById("setBaseBalance");
+  if(baseEl){
+    baseEl.value=data.baseBalance;
+    baseEl.onchange=e=>{data.baseBalance=Number(e.target.value||0);save();renderAll();};
+  }
   [["setFreeIncome","freeMonthlyIncome"],["setSubIncome","subMonthlyIncome"],["setNormalAvg","normalAvg"],["setNormalGuaranteed","normalGuaranteed"],
    ["setFree100One","free100AvgOne"],["setFree100Two","free100AvgTwo"],["setFree100GuaranteedOne","free100GuaranteedOne"],["setFree100GuaranteedTwo","free100GuaranteedTwo"],
    ["setDownside","downsideReserve"],["setExtra","extraReserve"]].forEach(([id,key])=>{
@@ -810,20 +893,79 @@ document.getElementById("syncGuaranteedFromAverage").onclick=()=>{
   save();
   renderAll();
 };
-document.getElementById("baseBalance").onchange=e=>{data.baseBalance=Number(e.target.value||0);save();renderAll()};
-document.getElementById("jumpCurrent").onclick=()=>{document.querySelector(`[data-month="${currentMonthKey}"]`)?.scrollIntoView({behavior:"smooth",block:"center"})};
-document.getElementById("prevYear").onclick=()=>{if(reportYear>2026){reportYear--;renderReport()}};
-document.getElementById("nextYear").onclick=()=>{reportYear++;renderReport()};
+document.querySelectorAll("#reportRangeSegment button").forEach(b=>b.onclick=()=>{
+  if(b.dataset.range==="custom"){
+    refreshPeriodDialog();
+    document.getElementById("periodDialog").showModal();
+    return;
+  }
+  reportRange=b.dataset.range;
+  renderReport();
+});
 
 const dlg=document.getElementById("txDialog");
-document.getElementById("openTx").onclick=()=>{document.getElementById("txDate").value=new Date().toISOString().slice(0,10);document.getElementById("txAmount").value="";document.getElementById("txNote").value="";dlg.showModal()};
+
+function renderTxMonthDetails(){
+  const root=document.getElementById("txMonthDetails");
+  if(!root || !txTargetMonth) return;
+  const items=[...txForMonth(txTargetMonth)].filter(t=>t.type!=="ticket").sort((a,b)=>String(b.id).localeCompare(String(a.id)));
+  root.innerHTML = items.length ? `
+    <div style="border-top:1px solid var(--line);padding-top:12px">
+      <div class="small" style="font-weight:700;margin-bottom:8px">${fullMonthLabel(txTargetMonth)}の明細</div>
+      ${items.map(t=>`
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef2f7">
+          <div>${({gacha:"ガチャ支出",refresh:"石割り支出",other:"その他"})[t.type]||t.type}</div>
+          <div class="num">${yen(t.amount)}</div>
+          <button class="link-btn tx-dialog-del" data-id="${t.id}">削除</button>
+        </div>`).join("")}
+    </div>` : `<div class="note" style="border-top:1px solid var(--line);padding-top:12px">この月の明細はまだありません。</div>`;
+
+  root.querySelectorAll(".tx-dialog-del").forEach(b=>b.onclick=()=>{
+    data.transactions=data.transactions.filter(t=>t.id!==b.dataset.id);
+    save();
+    renderTxMonthDetails();
+    renderAll();
+  });
+}
+
+document.getElementById("toggleTxDetails").onclick=()=>{
+  const root=document.getElementById("txMonthDetails");
+  const open=root.style.display!=="none";
+  if(open){
+    root.style.display="none";
+    document.getElementById("toggleTxDetails").textContent="明細";
+  }else{
+    renderTxMonthDetails();
+    root.style.display="block";
+    document.getElementById("toggleTxDetails").textContent="明細を閉じる";
+  }
+};
+
 document.getElementById("cancelTx").onclick=()=>dlg.close();
 document.getElementById("saveTx").onclick=()=>{
-  const date=document.getElementById("txDate").value, amount=Number(document.getElementById("txAmount").value||0);
-  if(!date||amount<0)return alert("日付と数量を確認してください。");
-  if(date.slice(0,7) < PLAN_START_MONTH) return alert("実績記録は2026年10月からです。");
-  data.transactions.push({id:crypto.randomUUID?.()||String(Date.now()+Math.random()),date,type:document.getElementById("txType").value,amount,note:document.getElementById("txNote").value});
-  ensureMonth(date.slice(0,7)); save(); dlg.close(); renderAll();
+  const amount=Number(document.getElementById("txAmount").value||0);
+  if(!txTargetMonth || txTargetMonth < PLAN_START_MONTH || amount<0) return alert("数量を確認してください。");
+  data.transactions.push({
+    id:crypto.randomUUID?.()||String(Date.now()+Math.random()),
+    month:txTargetMonth,
+    type:document.getElementById("txType").value,
+    amount,
+  });
+  ensureMonth(txTargetMonth); save(); dlg.close(); renderAll();
+};
+
+const periodDlg=document.getElementById("periodDialog");
+document.getElementById("cancelPeriod").onclick=()=>periodDlg.close();
+document.getElementById("applyPeriod").onclick=()=>{
+  const s=document.getElementById("periodStart").value;
+  const e=document.getElementById("periodEnd").value;
+  if(!s||!e) return;
+  if(s>e) return alert("開始月は終了月以前にしてください。");
+  customReportStart=s;
+  customReportEnd=e;
+  reportRange="custom";
+  periodDlg.close();
+  renderReport();
 };
 document.getElementById("finalizeMonth").onclick=()=>{
   const key=document.getElementById("closingMonth").value;
