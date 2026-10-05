@@ -100,6 +100,76 @@ textarea{min-height:68px;resize:vertical}
 .report-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .report-table th:first-child,.report-table td:first-child{position:sticky;left:0;background:#fff;z-index:2}
 .report-table th:first-child{background:#f8fafc}
+.report-table th,
+.report-table td{
+  border-right:1px solid #dde3ea;
+}
+.report-table th:last-child,
+.report-table td:last-child{
+  border-right:0;
+}
+.report-table th:nth-last-child(-n+2){
+  background:#e8edf3;
+}
+
+/* 合計・平均は、その行の元色を一段だけ濃くする */
+.report-table tr.income-row td:nth-last-child(-n+2){
+  background:#e8f6ec;
+}
+.report-table tr.income-total td:nth-last-child(-n+2){
+  background:#d5eedc;
+}
+.report-table tr.expense-row td:nth-last-child(-n+2){
+  background:#fdecec;
+}
+.report-table tr.expense-total td:nth-last-child(-n+2){
+  background:#f9dada;
+}
+.report-table tr.balance-row td:nth-last-child(-n+2){
+  background:#f0f0f0;
+}
+.report-table tr:not(.income-row):not(.income-total):not(.expense-row):not(.expense-total):not(.balance-row) td:nth-last-child(-n+2){
+  background:#f1f4f7;
+}
+.report-head-row th{
+  font-size:14px;
+  font-weight:800;
+  text-align:center;
+  vertical-align:middle;
+  padding-top:11px;
+  padding-bottom:11px;
+}
+.report-head-row th:first-child{text-align:left}
+
+.report-month-head{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  white-space:nowrap;
+}
+.report-month-head .report-add-tx{
+  width:24px;
+  min-width:24px;
+  height:24px;
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  line-height:1;
+  border-radius:7px;
+}
+.report-table tr.income-row td{background:#f3fbf5}
+.report-table tr.income-total td{background:#e3f5e8}
+.report-table tr.expense-row td{background:#fff5f5}
+.report-table tr.expense-total td{background:#fde7e7}
+.report-table tr.balance-row td{background:#fafafa}
+.report-table tr.income-row td:first-child,
+.report-table tr.income-total td:first-child,
+.report-table tr.expense-row td:first-child,
+.report-table tr.expense-total td:first-child,
+.report-table tr.balance-row td:first-child{background:inherit}
 .actual-inputs{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px}
 .tx-list{margin-top:12px;border-top:1px solid var(--line)}
 .tx-item{display:grid;grid-template-columns:130px 120px 1fr 110px auto;gap:10px;padding:12px 0;border-bottom:1px solid #eef2f7;align-items:center}
@@ -116,6 +186,8 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
 .primary,.secondary,.danger{min-height:40px}
 .dialog-body{padding:24px 24px 20px}
 .dialog-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px 20px;border-top:1px solid var(--line);background:#fafafa;flex-wrap:wrap}
+
+
 @media(max-width:800px){
   main{padding:0 8px 36px}
   .panel{padding:12px}
@@ -174,6 +246,12 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
 
   .report-wrap table{font-size:8px}
   .report-wrap th,.report-wrap td{padding:4px 3px}
+  .report-head-row th{font-size:10px;padding:6px 2px}
+  .report-month-head{gap:2px}
+  .report-month-head .report-add-tx{
+    width:18px;min-width:18px;height:18px;
+    font-size:10px;padding:0;
+  }
   .report-table th:first-child,.report-table td:first-child{
     position:static;
     width:16%;
@@ -260,7 +338,7 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
   </div>
 
   <div class="panel">
-    <h2 class="section-title">その他消費</h2>
+    <h2 class="section-title">収支明細</h2>
     <div id="txList" class="tx-list"></div>
   </div>
 </section>
@@ -336,10 +414,10 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
 
 <dialog id="txDialog">
   <div class="dialog-body">
-    <h2 class="section-title" id="txDialogTitle">その他消費追加</h2>
+    <h2 class="section-title" id="txDialogTitle">収支追加</h2>
     <div class="form-grid">
-      <div><label>種類</label><select id="txType"><option value="gacha">ガチャ支出</option><option value="refresh">石割り支出</option><option value="other">その他</option></select></div>
-      <div><label>数量</label><input id="txAmount" type="number" min="0"></div>
+      <div><label>種類</label><select id="txType"><option value="gacha">ガチャ支出</option><option value="refresh">石割り支出</option><option value="other">その他支出</option><option value="otherIncome">その他収入</option></select></div>
+      <div><label>石数</label><input id="txAmount" type="number" min="0"></div>
     </div>
   </div>
   <div id="txMonthDetails" style="display:none;padding:0 24px 18px"></div>
@@ -485,11 +563,12 @@ function actualReport(key){
   const c=data.closings[key]||{};
   const opening=getOpeningBalance(key);
   const paid=paidIncomeForMonth(key);
+  const otherIncome=txSum(key,"otherIncome");
   const spend=stoneSpend(key);
   const closing=(c.closingBalance!==undefined && c.closingBalance!==null && c.closingBalance!=="")?Number(c.closingBalance):null;
   const totalIncome=closing===null?null:(closing-opening+spend);
-  const freeIncome=totalIncome===null?null:(totalIncome-paid);
-  return {opening,paid,spend,closing,totalIncome,freeIncome,gacha:txSum(key,"gacha"),refresh:txSum(key,"refresh"),ticket:txSum(key,"ticket"),other:txSum(key,"other")};
+  const freeIncome=totalIncome===null?null:(totalIncome-paid-otherIncome);
+  return {opening,paid,otherIncome,spend,closing,totalIncome,freeIncome,gacha:txSum(key,"gacha"),refresh:txSum(key,"refresh"),ticket:txSum(key,"ticket"),other:txSum(key,"other")};
 }
 function getOpeningBalance(key){
   const prev=addMonths(key,-1);
@@ -767,7 +846,7 @@ function shortReportMonthLabel(key){
 }
 function openTransactionDialog(month){
   txTargetMonth=month;
-  document.getElementById("txDialogTitle").textContent=`${fullMonthLabel(month)} その他消費`;
+  document.getElementById("txDialogTitle").textContent=`${fullMonthLabel(month)} 収支追加`;
   document.getElementById("txAmount").value="";
   renderTxMonthDetails();
   document.getElementById("txMonthDetails").style.display="none";
@@ -787,10 +866,10 @@ function renderReport(){
   const rangeLabel = months.length ? `${fullMonthLabel(months[0])}〜${fullMonthLabel(months[months.length-1])}` : "対象月なし";
   document.getElementById("reportRangeLabel").textContent=rangeLabel;
   document.querySelectorAll("#reportRangeSegment button").forEach(b=>b.classList.toggle("active",b.dataset.range===reportRange));
-  document.getElementById("reportHead").innerHTML=`<tr><th>項目</th>${months.map(m=>`<th><div style="display:flex;flex-direction:column;gap:4px;align-items:center"><span title="${fullMonthLabel(m)}">${shortReportMonthLabel(m)}</span><button class="ghost-add report-add-tx" data-month="${m}" style="padding:3px 6px;width:auto">＋</button></div></th>`).join("")}<th>合計</th><th>平均</th></tr>`;
+  document.getElementById("reportHead").innerHTML=`<tr class="report-head-row"><th>項目</th>${months.map(m=>`<th><div class="report-month-head"><span title="${fullMonthLabel(m)}">${shortReportMonthLabel(m)}</span><button class="ghost-add report-add-tx" data-month="${m}" title="${fullMonthLabel(m)}に追加">＋</button></div></th>`).join("")}<th>合計</th><th>平均</th></tr>`;
   const defs=[
-    ["期首残高","opening",false],["無料石収入","freeIncome",true],["課金石収入","paid",true],["石収入合計","totalIncome",true],
-    ["ガチャ支出","gacha",true],["石割り支出","refresh",true],["その他消費","other",true],["石支出合計","spend",true],["期末残高","closing",false]
+    ["期首残高","opening",false],["無料石収入","freeIncome",true],["課金石収入","paid",true],["その他収入","otherIncome",true],["石収入合計","totalIncome",true],
+    ["ガチャ支出","gacha",true],["石割り支出","refresh",true],["その他支出","other",true],["石支出合計","spend",true],["期末残高","closing",false]
   ];
   const reports=months.map(m=>actualReport(m));
   const body=document.getElementById("reportBody"); body.innerHTML="";
@@ -800,6 +879,13 @@ function renderReport(){
     const sum=known.reduce((s,v)=>s+Number(v||0),0);
     const avg=known.length?sum/known.length:0;
     const tr=document.createElement("tr");
+
+    if(["freeIncome","paid","otherIncome"].includes(key)) tr.className="income-row";
+    else if(key==="totalIncome") tr.className="income-total";
+    else if(["gacha","refresh","other"].includes(key)) tr.className="expense-row";
+    else if(key==="spend") tr.className="expense-total";
+    else if(["opening","closing"].includes(key)) tr.className="balance-row";
+
     tr.innerHTML=`<td><strong>${label}</strong></td>${vals.map(v=>`<td class="num ${key==="closing" && Number(v)<0?"balance-negative":""}">${v===null||v===undefined?"—":yen(v)}</td>`).join("")}
       <td class="num">${aggregate?yen(sum):"—"}</td><td class="num">${aggregate&&known.length?yen(avg):"—"}</td>`;
     body.appendChild(tr);
@@ -829,7 +915,7 @@ function renderTransactions(){
   const root=document.getElementById("txList");
   const tx=[...data.transactions].filter(t=>t.type!=="ticket").sort((a,b)=>String(b.month||b.date||"").localeCompare(String(a.month||a.date||"")));
   root.innerHTML=tx.length?tx.map(t=>`<div class="tx-item">
-    <div>${fullMonthLabel(t.month||t.date?.slice(0,7)||PLAN_START_MONTH)}</div><div>${({gacha:"ガチャ",refresh:"石割り",other:"その他"})[t.type]||t.type}</div><div></div><div class="num">${yen(t.amount)}</div><button class="link-btn tx-del" data-id="${t.id}">削除</button>
+    <div>${fullMonthLabel(t.month||t.date?.slice(0,7)||PLAN_START_MONTH)}</div><div>${({gacha:"ガチャ",refresh:"石割り",other:"その他支出",otherIncome:"その他収入"})[t.type]||t.type}</div><div></div><div class="num">${yen(t.amount)}</div><button class="link-btn tx-del" data-id="${t.id}">削除</button>
   </div>`).join(""):'<div class="note" style="padding:12px 0">まだ明細はありません。</div>';
   root.querySelectorAll(".tx-del").forEach(b=>b.onclick=()=>{data.transactions=data.transactions.filter(t=>t.id!==b.dataset.id);save();renderAll()});
 }
@@ -914,7 +1000,7 @@ function renderTxMonthDetails(){
       <div class="small" style="font-weight:700;margin-bottom:8px">${fullMonthLabel(txTargetMonth)}の明細</div>
       ${items.map(t=>`
         <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef2f7">
-          <div>${({gacha:"ガチャ支出",refresh:"石割り支出",other:"その他"})[t.type]||t.type}</div>
+          <div>${({gacha:"ガチャ支出",refresh:"石割り支出",other:"その他支出",otherIncome:"その他収入"})[t.type]||t.type}</div>
           <div class="num">${yen(t.amount)}</div>
           <button class="link-btn tx-dialog-del" data-id="${t.id}">削除</button>
         </div>`).join("")}
