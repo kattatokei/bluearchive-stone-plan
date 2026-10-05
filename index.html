@@ -418,6 +418,11 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
     <div class="form-grid">
       <div><label>種類</label><select id="txType"><option value="gacha">ガチャ支出</option><option value="refresh">石割り支出</option><option value="other">その他支出</option><option value="otherIncome">その他収入</option></select></div>
       <div><label>石数</label><input id="txAmount" type="number" min="0"></div>
+      <div id="txPlanLinkWrap" style="grid-column:1/-1">
+        <label>対応予定</label>
+        <select id="txPlanLink"></select>
+        <div class="help" style="margin-top:6px">選択した予定は消化済みになり、計画支出との二重計上を防ぎます。</div>
+      </div>
     </div>
   </div>
   <div id="txMonthDetails" style="display:none;padding:0 24px 18px"></div>
@@ -491,6 +496,7 @@ let reportRange="6";
 let customReportStart=PLAN_START_MONTH;
 let customReportEnd=currentMonthKey;
 let txTargetMonth=currentMonthKey;
+let txPlanOptions=[];
 let editingMonth=null;
 
 function save(){
@@ -555,6 +561,46 @@ function paidIncomeForMonth(key){
   if(!hasSub) return 0;
   const days=(c.daysOverride!==undefined && c.daysOverride!==null && c.daysOverride!=="")?Number(c.daysOverride):monthDays(key);
   return days*60+592;
+}
+function planSignature(g){
+  return `${(g.name||"").trim()}|${g.category}|${String(g.choice ?? g.pickupCount ?? 1)}`;
+}
+function pendingPlanOptions(month){
+  ensureMonth(month);
+  const grouped=new Map();
+  for(const mode of ["average","guaranteed"]){
+    for(const g of data.plans[mode][month].gachas||[]){
+      if(g.done) continue;
+      const sig=planSignature(g);
+      if(!grouped.has(sig)){
+        grouped.set(sig,{
+          signature:sig,
+          name:(g.name||"").trim() || categoryName(g.category),
+          category:g.category,
+          choice:g.choice ?? g.pickupCount ?? 1,
+          refs:[]
+        });
+      }
+      grouped.get(sig).refs.push({mode,month,id:g.id});
+    }
+  }
+  return [...grouped.values()].map(x=>{
+    const modes=[...new Set(x.refs.map(r=>r.mode))];
+    const suffix=modes.length===2 ? "" : (modes[0]==="average" ? "（平均のみ）" : "（最低保証のみ）");
+    return {...x,label:`${x.name} / ${gachaChoice({choice:x.choice,pickupCount:x.choice})}${suffix}`};
+  });
+}
+function restoreLinkedPlans(tx){
+  for(const ref of tx?.linkedPlans||[]){
+    const g=data.plans?.[ref.mode]?.[ref.month]?.gachas?.find(x=>x.id===ref.id);
+    if(g) g.done=false;
+  }
+}
+function deleteTransactionById(id){
+  const tx=data.transactions.find(t=>t.id===id);
+  if(tx) restoreLinkedPlans(tx);
+  data.transactions=data.transactions.filter(t=>t.id!==id);
+  save();
 }
 function txForMonth(key){ return data.transactions.filter(t=>(t.month||t.date?.slice(0,7))===key); }
 function txSum(key,type){ return txForMonth(key).filter(t=>t.type===type).reduce((s,t)=>s+Number(t.amount||0),0); }
@@ -632,6 +678,7 @@ function calculatePlanRows(){
     }else{
       const opening=balance;
       income=getMonthlyIncome(key);
+      if(key===currentMonthKey) income += txSum(key,"otherIncome");
       const actualSpend = key===currentMonthKey ? stoneSpend(key) : 0;
       const remainingPlan=planSpend(key,activeMode);
       spend=actualSpend+remainingPlan;
@@ -844,10 +891,27 @@ function shortReportMonthLabel(key){
   const [y,m]=key.split("-");
   return `${String(y).slice(2)}/${Number(m)}`;
 }
+function refreshTxPlanLink(){
+  const type=document.getElementById("txType").value;
+  const wrap=document.getElementById("txPlanLinkWrap");
+  const sel=document.getElementById("txPlanLink");
+  if(type!=="gacha"){
+    wrap.style.display="none";
+    txPlanOptions=[];
+    sel.innerHTML="";
+    return;
+  }
+  wrap.style.display="block";
+  txPlanOptions=pendingPlanOptions(txTargetMonth);
+  sel.innerHTML=`<option value="">なし（予定外のガチャ）</option>`+
+    txPlanOptions.map((x,i)=>`<option value="${i}">${escapeHtml(x.label)}</option>`).join("");
+}
 function openTransactionDialog(month){
   txTargetMonth=month;
   document.getElementById("txDialogTitle").textContent=`${fullMonthLabel(month)} 収支追加`;
+  document.getElementById("txType").value="gacha";
   document.getElementById("txAmount").value="";
+  refreshTxPlanLink();
   renderTxMonthDetails();
   document.getElementById("txMonthDetails").style.display="none";
   document.getElementById("toggleTxDetails").textContent="明細";
@@ -915,9 +979,9 @@ function renderTransactions(){
   const root=document.getElementById("txList");
   const tx=[...data.transactions].filter(t=>t.type!=="ticket").sort((a,b)=>String(b.month||b.date||"").localeCompare(String(a.month||a.date||"")));
   root.innerHTML=tx.length?tx.map(t=>`<div class="tx-item">
-    <div>${fullMonthLabel(t.month||t.date?.slice(0,7)||PLAN_START_MONTH)}</div><div>${({gacha:"ガチャ",refresh:"石割り",other:"その他支出",otherIncome:"その他収入"})[t.type]||t.type}</div><div></div><div class="num">${yen(t.amount)}</div><button class="link-btn tx-del" data-id="${t.id}">削除</button>
+    <div>${fullMonthLabel(t.month||t.date?.slice(0,7)||PLAN_START_MONTH)}</div><div>${({gacha:"ガチャ",refresh:"石割り",other:"その他支出",otherIncome:"その他収入"})[t.type]||t.type}</div><div>${t.linkedPlanLabel?escapeHtml(t.linkedPlanLabel):""}</div><div class="num">${yen(t.amount)}</div><button class="link-btn tx-del" data-id="${t.id}">削除</button>
   </div>`).join(""):'<div class="note" style="padding:12px 0">まだ明細はありません。</div>';
-  root.querySelectorAll(".tx-del").forEach(b=>b.onclick=()=>{data.transactions=data.transactions.filter(t=>t.id!==b.dataset.id);save();renderAll()});
+  root.querySelectorAll(".tx-del").forEach(b=>b.onclick=()=>{deleteTransactionById(b.dataset.id);renderAll()});
 }
 
 function renderSettings(){
@@ -1000,15 +1064,17 @@ function renderTxMonthDetails(){
       <div class="small" style="font-weight:700;margin-bottom:8px">${fullMonthLabel(txTargetMonth)}の明細</div>
       ${items.map(t=>`
         <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef2f7">
-          <div>${({gacha:"ガチャ支出",refresh:"石割り支出",other:"その他支出",otherIncome:"その他収入"})[t.type]||t.type}</div>
+          <div>
+            ${({gacha:"ガチャ支出",refresh:"石割り支出",other:"その他支出",otherIncome:"その他収入"})[t.type]||t.type}
+            ${t.linkedPlanLabel?`<div class="note">${escapeHtml(t.linkedPlanLabel)}</div>`:""}
+          </div>
           <div class="num">${yen(t.amount)}</div>
           <button class="link-btn tx-dialog-del" data-id="${t.id}">削除</button>
         </div>`).join("")}
     </div>` : `<div class="note" style="border-top:1px solid var(--line);padding-top:12px">この月の明細はまだありません。</div>`;
 
   root.querySelectorAll(".tx-dialog-del").forEach(b=>b.onclick=()=>{
-    data.transactions=data.transactions.filter(t=>t.id!==b.dataset.id);
-    save();
+    deleteTransactionById(b.dataset.id);
     renderTxMonthDetails();
     renderAll();
   });
@@ -1027,15 +1093,37 @@ document.getElementById("toggleTxDetails").onclick=()=>{
   }
 };
 
+document.getElementById("txType").onchange=refreshTxPlanLink;
 document.getElementById("cancelTx").onclick=()=>dlg.close();
 document.getElementById("saveTx").onclick=()=>{
   const amount=Number(document.getElementById("txAmount").value||0);
+  const type=document.getElementById("txType").value;
   if(!txTargetMonth || txTargetMonth < PLAN_START_MONTH || amount<0) return alert("数量を確認してください。");
+
+  let linkedPlans=[];
+  let linkedPlanLabel="";
+  if(type==="gacha"){
+    const raw=document.getElementById("txPlanLink").value;
+    if(raw!==""){
+      const selected=txPlanOptions[Number(raw)];
+      if(selected){
+        linkedPlans=selected.refs.map(r=>({...r}));
+        linkedPlanLabel=selected.label;
+        for(const ref of linkedPlans){
+          const g=data.plans?.[ref.mode]?.[ref.month]?.gachas?.find(x=>x.id===ref.id);
+          if(g) g.done=true;
+        }
+      }
+    }
+  }
+
   data.transactions.push({
     id:crypto.randomUUID?.()||String(Date.now()+Math.random()),
     month:txTargetMonth,
-    type:document.getElementById("txType").value,
+    type,
     amount,
+    linkedPlans,
+    linkedPlanLabel
   });
   ensureMonth(txTargetMonth); save(); dlg.close(); renderAll();
 };
