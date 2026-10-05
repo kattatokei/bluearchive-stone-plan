@@ -563,6 +563,7 @@ dialog::backdrop{background:rgba(15,23,42,.38)}
 <footer class="site-footer">
   <p><strong>ブルアカ 石計画</strong>は、ブルーアーカイブの青輝石・ガチャ予定・月ごとの収支を管理する非公式Webツールです。</p>
   <p>平均想定と最低保証の比較、ガチャ支出・その他収入/支出、サブスク収入、Googleアカウント同期に対応しています。</p>
+  <p>サービス改善のためGoogle Analyticsでアクセス数や機能操作の種類を集計します。入力した石数・ガチャ名・Googleアカウントのメールアドレスは、独自の操作イベントには送信しません。</p>
 </footer>
 
 
@@ -998,6 +999,7 @@ function renderPlan(){
         ensureMonth(key);
         data.months[key].incomeType=bulkIncomeType.value;
       }
+      window.blueArchiveAnalytics?.track("income_plan_change",{income_type:bulkIncomeType.value});
       save();
       renderAll();
     };
@@ -1120,8 +1122,18 @@ function saveGachaFromDialog({keepOpen=false}={}){
   if(gachaDialogId){
     const g=p.gachas.find(x=>x.id===gachaDialogId);
     if(g) Object.assign(g,payload);
+    window.blueArchiveAnalytics?.track("gacha_edit",{
+      category,
+      choice:String(choice),
+      plan_mode:activeMode
+    });
   }else{
     p.gachas.push({id:crypto.randomUUID?.()||String(Date.now()+Math.random()),...payload});
+    window.blueArchiveAnalytics?.track("gacha_add",{
+      category,
+      choice:String(choice),
+      plan_mode:activeMode
+    });
   }
 
   save();
@@ -1286,6 +1298,7 @@ function renderInitialBalancePrompt(){
     if(input.value==="") return alert("今月初めの残高を入力してください。");
     data.baseBalance=Number(input.value);
     data.baseBalanceInitialized=true;
+    window.blueArchiveAnalytics?.track("initial_balance_set");
     save();
     renderAll();
   };
@@ -1322,12 +1335,14 @@ function renderAll(){renderInitialBalancePrompt();renderPlan();renderReport();re
 
 document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>{
   activePage=b.dataset.page;
+  window.blueArchiveAnalytics?.track("section_view",{section:activePage});
   document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x===b));
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   document.getElementById(`page-${activePage}`).classList.add("active");
 });
 document.querySelectorAll("#modeSegment button").forEach(b=>b.onclick=()=>{
   activeMode=b.dataset.mode;
+  window.blueArchiveAnalytics?.track("plan_mode_change",{mode:activeMode});
   document.querySelectorAll("#modeSegment button").forEach(x=>x.classList.toggle("active",x===b));
   const syncBtn=document.getElementById("syncGuaranteedFromAverage");
   if(syncBtn) syncBtn.style.display=activeMode==="guaranteed"?"inline-block":"none";
@@ -1354,6 +1369,7 @@ document.getElementById("syncGuaranteedFromAverage").onclick=()=>{
   // Keep guaranteed months that have no counterpart in average, but clear them only if they are in visible planning range?
   // User asked to sync schedules; safest is full overwrite of guaranteed schedules with average schedules.
   data.plans.guaranteed = copied;
+  window.blueArchiveAnalytics?.track("guaranteed_plan_sync");
 
   // Ensure all month keys exist in both stores.
   for(const m of Object.keys(data.months||{})){
@@ -1445,6 +1461,10 @@ document.getElementById("saveTx").onclick=()=>{
     linkedPlans,
     linkedPlanLabel
   });
+  window.blueArchiveAnalytics?.track("transaction_add",{
+    transaction_type:type,
+    linked_to_plan:linkedPlans.length?"yes":"no"
+  });
   ensureMonth(txTargetMonth); save(); dlg.close(); renderAll();
 };
 
@@ -1473,22 +1493,27 @@ document.getElementById("finalizeMonth").onclick=()=>{
     daysOverride:document.getElementById("closingDaysOverride").value===""?null:Number(document.getElementById("closingDaysOverride").value),
     finalized:true
   };
+  window.blueArchiveAnalytics?.track("month_finalize",{
+    income_type:document.getElementById("closingSub").value
+  });
   ensureMonth(addMonths(key,1)); save(); renderAll();
 };
 document.getElementById("unfinalizeMonth").onclick=()=>{
   const key=document.getElementById("closingMonth").value;
   if(!key || key < data.appStartMonth) return;
   if(data.closings[key])data.closings[key].finalized=false;
+  window.blueArchiveAnalytics?.track("month_unfinalize");
   save();renderAll();
 };
 
 document.getElementById("exportJson").onclick=()=>{
+  window.blueArchiveAnalytics?.track("json_export");
   const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`bluearchive-stone-plan-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href);
 };
 document.getElementById("importJson").onchange=async e=>{
   const f=e.target.files[0]; if(!f)return;
-  try{ const d=JSON.parse(await f.text()); if(!confirm("現在のデータを読み込んだJSONで置き換えます。よろしいですか？"))return; data={...clone(defaults),...d,settings:{...clone(defaults.settings),...(d.settings||{})},months:d.months||{},plans:{average:d.plans?.average||{},guaranteed:d.plans?.guaranteed||{}},transactions:d.transactions||[],closings:d.closings||{}};save();renderAll(); }
+  try{ const d=JSON.parse(await f.text()); if(!confirm("現在のデータを読み込んだJSONで置き換えます。よろしいですか？"))return; data={...clone(defaults),...d,settings:{...clone(defaults.settings),...(d.settings||{})},months:d.months||{},plans:{average:d.plans?.average||{},guaranteed:d.plans?.guaranteed||{}},transactions:d.transactions||[],closings:d.closings||{}};window.blueArchiveAnalytics?.track("json_import");save();renderAll(); }
   catch(err){alert("JSONを読み込めませんでした。")}
   e.target.value="";
 };
@@ -1499,6 +1524,7 @@ document.getElementById("resetData").onclick=()=>{
   data.baseBalance=null;
   data.baseBalanceInitialized=false;
   customReportStart=data.appStartMonth;
+  window.blueArchiveAnalytics?.track("data_reset");
   ensureInitialMonths();save();renderAll();
 };
 
@@ -1522,6 +1548,10 @@ if(initialSyncBtn) initialSyncBtn.style.display=activeMode==="guaranteed"?"inlin
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getAnalytics,
+  logEvent
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -1549,9 +1579,23 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+
+window.blueArchiveAnalytics = {
+  track(name,params={}){
+    try{
+      logEvent(analytics,name,params);
+    }catch(err){
+      console.warn("Analytics event failed",name,err);
+    }
+  }
+};
+
+// 初回表示。入力値そのものは送らない。
+window.blueArchiveAnalytics.track("app_open");
 
 const btn = document.getElementById("googleAuthBtn");
 const userEl = document.getElementById("cloudUser");
@@ -1618,8 +1662,10 @@ btn.addEventListener("click",async()=>{
   try{
     if(auth.currentUser){
       await signOut(auth);
+      window.blueArchiveAnalytics?.track("google_logout");
     }else{
       await signInWithPopup(auth,provider);
+      window.blueArchiveAnalytics?.track("google_login_success");
     }
   }catch(err){
     console.error("Google auth failed",err);
